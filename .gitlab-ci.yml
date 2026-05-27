@@ -25,11 +25,11 @@ deadline:
     - apt-get install -y curl
   script:
     - "group=$CI_PROJECT_TITLE"
-    - "group=${group:19:-8}"
+    - "group=${group:6:2}"
     - "echo Group: $group"
     - "current_date=$(date +%s)"
     - "assignment_id=3"
-    - plain_date=$(curl -s "https://oop.2025.virtuallab.dev/api/oop/deadlines/$assignment_id?token=$DEADLINE_TOKEN&group=$group")
+    - plain_date=$(curl -s "https://2026.oop.virtuallab.dev/api/oop/deadlines/$assignment_id?token=$DEADLINE_TOKEN&group=$group")
     - echo "The deadline is for the introduction assignment with id 3 for group $group is $plain_date"
     - soft_due_date=$(date -d "$plain_date" +%s)
     - hard_due_date=$(date -d "$plain_date + 1 day" +%s)
