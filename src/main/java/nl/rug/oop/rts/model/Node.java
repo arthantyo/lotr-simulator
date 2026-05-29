@@ -21,6 +21,13 @@ public class Node {
      */
     private final String name;
 
+    /**
+     * X coordinate of the node on the panel.
+     */
     private int x;
+
+    /**
+     * Y coordinate of the node on the panel.
+     */
     private int y;
 }

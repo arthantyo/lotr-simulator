@@ -2,7 +2,7 @@ package nl.rug.oop.rts;
 
 import com.formdev.flatlaf.FlatDarculaLaf;
 
-import nl.view.MainFrame;
+import nl.rug.oop.rts.view.MainFrame;
 
 /**
  * Entry point of the RTS editor application.

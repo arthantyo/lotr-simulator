@@ -24,13 +24,10 @@ public class Graph {
 
     /**
      * Constructor for Graph. Add more details here.
-     *
-     * @param nodes List of nodes in the graph.
-     * @param edges List of edges in the graph.
      */
-    public Graph(ArrayList<Node> nodes, ArrayList<Edge> edges) {
-        this.nodes = nodes;
-        this.edges = edges;
+    public Graph() {
+        this.nodes = new ArrayList<Node>();
+        this.edges = new ArrayList<Edge>();
     }
 
     /**

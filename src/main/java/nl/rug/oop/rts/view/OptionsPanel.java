@@ -1,4 +1,4 @@
-package nl.view;
+package nl.rug.oop.rts.view;
 
 import javax.swing.JPanel;
 import java.awt.Color;
