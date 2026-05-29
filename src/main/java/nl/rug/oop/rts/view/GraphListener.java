@@ -10,6 +10,7 @@ import nl.rug.oop.rts.model.Node;
 public class GraphListener {
     /**
      * Called when a node is added to the graph.
+     *
      * @param node Node that has been added to the graph.
      */
     public void onNodeAdded(Node node) {
@@ -18,6 +19,7 @@ public class GraphListener {
 
     /**
      * Called when a node is removed from the graph.
+     *
      * @param node Node that has been removed from the graph.
      */
     public void onNodeDeleted(Node node) {
@@ -26,6 +28,7 @@ public class GraphListener {
 
     /**
      * Called when an edge is added to the graph.
+     *
      * @param edge Edge that has been added to the graph.
      */
     public void onEdgeAdded(Edge edge) {
@@ -34,6 +37,7 @@ public class GraphListener {
 
     /**
      * Called when an edge is removed from the graph.
+     *
      * @param edge Edge that has been removed from the graph.
      */
     public void onEdgeDeleted(Edge edge) {
@@ -42,6 +46,7 @@ public class GraphListener {
 
     /**
      * Called when a node is clicked/selected in the UI.
+     *
      * @param node Node that has been clicked.
      */
     public void onNodeClicked(Node node) {
@@ -50,6 +55,7 @@ public class GraphListener {
 
     /**
      * Called when an edge is clicked/selected in the UI.
+     *
      * @param edge Edge that has been clicked.
      */
     public void onEdgeClicked(Edge edge) {
