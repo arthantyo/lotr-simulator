@@ -2,32 +2,32 @@ package nl.rug.oop.rts.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.AllArgsConstructor;
 
 /**
- * Represents a node (vertex) in the graph with an immutable id and name.
+ * Represents a node (vertex) in the graph with an immutable id and an editable name.
  */
+@Getter
+@Setter
+@AllArgsConstructor
 public class Node {
     /**
      * ID of the node. Add more details here.
      */
-    @Getter
     private final int id;
 
     /**
      * Name of the node. Add more details here.
      */
-    @Getter
-    @Setter
     private String name;
 
     /**
-     * Constructor for Node. Add more details here.
-     *
-     * @param id   ID of the node. Must be unique within the graph.
-     * @param name Name of the node. Add more details here.
+     * X coordinate of the node on the panel.
      */
-    public Node(int id, String name) {
-        this.id = id;
-        this.name = name;
-    }
+    private int x;
+
+    /**
+     * Y coordinate of the node on the panel.
+     */
+    private int y;
 }

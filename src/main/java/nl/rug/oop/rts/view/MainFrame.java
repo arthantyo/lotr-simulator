@@ -1,12 +1,10 @@
-package nl.view;
+package nl.rug.oop.rts.view;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
+import nl.rug.oop.rts.model.*;
 import javax.swing.JSplitPane;
-
-import nl.rug.oop.rts.model.Edge;
-import nl.rug.oop.rts.model.Node;
 
 /**
  * Main frame of the application. Serves as the top-level window,
@@ -27,6 +25,10 @@ public class MainFrame extends JFrame {
         // Centre the window on the screen
         setLocationRelativeTo(null);
 
+        Graph graph = new Graph();
+        GraphPanel graphPanel = new GraphPanel(graph);
+        add(graphPanel);
+
         // Use JMenuBar as a horizontal toolbar at the top of the window
         JMenuBar menuBar = new JMenuBar();
 
@@ -39,15 +41,14 @@ public class MainFrame extends JFrame {
         menuBar.add(addEdgeButton);
         menuBar.add(removeNodeButton);
         menuBar.add(removeEdgeButton);
-
         setJMenuBar(menuBar);
 
-        GraphPanel graphPanel1 = new GraphPanel();
+        GraphPanel graphPanel1 = new GraphPanel(graph);
         OptionsPanel optionsPanel = new OptionsPanel();
 
         // Temporary hardcoded nodes and edge to demonstrate the options panel
-        Node from = new Node(1, "Node 1");
-        Node to = new Node(2, "Node 2");
+        Node from = new Node(1, "Node 1", 100, 100);
+        Node to = new Node(2, "Node 2", 300, 200);
         Edge edge = new Edge(1, "Edge 1", from, to);
         optionsPanel.showEdgeMenu(edge);
 

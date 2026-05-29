@@ -1,4 +1,4 @@
-package nl.view;
+package nl.rug.oop.rts.view;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
