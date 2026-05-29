@@ -5,11 +5,11 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 
 /**
- * Main frame of the application. Add more details here.
+ * Main window of the RTS editor application.
  */
 public class MainFrame extends JFrame {
     /**
-     * Creates the main frame of the application. Add more details here.
+     * Creates the main frame, graph panel, and menu bar.
      */
     public MainFrame() {
         setTitle("Lord of the Rings Game");
