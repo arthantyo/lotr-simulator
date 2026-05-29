@@ -51,13 +51,19 @@ public class GraphMouseListener extends MouseAdapter {
     private static final int NODE_RADIUS = 40;
 
     /**
+     * Panel for displaying details of the selected graph element.
+     */
+    private final OptionsPanel optionsPanel;
+    /**
      * Constructor for the graph mouse listener.
      * @param graph Graph model that this listener will interact with. Must not be null.
      * @param graphPanel Graph panel that will be repainted and panned.
+     * @param optionsPanel Options panel for displaying element details.
      */
-    public GraphMouseListener(Graph graph, GraphPanel graphPanel) {
+    public GraphMouseListener(Graph graph, GraphPanel graphPanel, OptionsPanel optionsPanel) {
         this.graph = graph;
         this.graphPanel = graphPanel;
+        this.optionsPanel = optionsPanel;
     }
 
     /**
@@ -88,8 +94,10 @@ public class GraphMouseListener extends MouseAdapter {
 
         if (clickedNode != null) {
             selectedNode = clickedNode;
+            optionsPanel.showNodeMenu(clickedNode);
         } else {
             selectedNode = null;
+            optionsPanel.showNothingSelected();
             panning = true;
         }
 

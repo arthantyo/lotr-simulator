@@ -17,6 +17,11 @@ import java.awt.Color;
 public class OptionsPanel extends JPanel {
 
     /**
+     * Callback to invoke when an edge's name is changed, so the graph panel can repaint.
+     */
+    private Runnable onNameChanged = () -> {};
+
+    /**
      * Creates the options panel with a grey background and a placeholder
      * label shown when no graph element is selected.
      */
@@ -25,6 +30,28 @@ public class OptionsPanel extends JPanel {
         add(new JLabel("Nothing selected"));
     }
 
+    /** Sets the callback to be invoked when an edge's name is changed. 
+     * 
+     * @param onNameChanged the callback to invoke when an edge's name is changed
+    */
+    public void setOnNameChanged(Runnable onNameChanged) {
+        this.onNameChanged = onNameChanged;
+    }
+
+    /**
+     * Displays the default message when no graph element is selected.
+     */
+    public void showNothingSelected() {
+        removeAll();
+        add(new JLabel("Nothing selected"));
+        revalidate();
+        repaint();
+    }
+
+    /**
+     * 
+     * @param edge
+     */
     /**
      * Replaces the panel contents with an edge editing form.
      * Displays the edge's name as an editable text field, and shows
@@ -48,6 +75,7 @@ public class OptionsPanel extends JPanel {
         // Commit the edited name to the model when the user presses Enter
         nameField.addActionListener(e -> {
             edge.setName(nameField.getText());
+            onNameChanged.run();
         });
 
         revalidate();
@@ -72,6 +100,7 @@ public class OptionsPanel extends JPanel {
         // Commit the edited name to the model when the user presses Enter
         nodeNameField.addActionListener(e -> {
             node.setName(nodeNameField.getText());
+            onNameChanged.run();
         });
         revalidate();
         repaint();

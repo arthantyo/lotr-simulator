@@ -5,7 +5,6 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JSplitPane;
 
-import nl.rug.oop.rts.model.Edge;
 import nl.rug.oop.rts.model.Graph;
 import nl.rug.oop.rts.model.Node;
 
@@ -75,14 +74,12 @@ public class MainFrame extends JFrame {
      * @return a split pane with the graph view on the left and the options panel on the right
      */
     private JSplitPane createSplitPane(Graph graph) {
-        GraphPanel graphPanel = new GraphPanel(graph);
         OptionsPanel optionsPanel = new OptionsPanel();
+        GraphPanel graphPanel = new GraphPanel(graph,optionsPanel);
+     
 
-        Node from = new Node(1, "Node 1", 100, 100);
-        Node to = new Node(2, "Node 2", 300, 200);
-        Edge edge = new Edge(1, "Edge 1", from, to);
-        optionsPanel.showEdgeMenu(edge);
-
+        optionsPanel.setOnNameChanged(graphPanel::repaint);
+      
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, optionsPanel, graphPanel);
 
         // Give the graph panel the majority of the horizontal space
