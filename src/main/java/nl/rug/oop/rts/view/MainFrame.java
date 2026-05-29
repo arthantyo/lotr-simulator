@@ -3,8 +3,11 @@ package nl.rug.oop.rts.view;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
-import nl.rug.oop.rts.model.*;
 import javax.swing.JSplitPane;
+
+import nl.rug.oop.rts.model.Edge;
+import nl.rug.oop.rts.model.Graph;
+import nl.rug.oop.rts.model.Node;
 
 /**
  * Main frame of the application. Serves as the top-level window,
@@ -80,8 +83,11 @@ public class MainFrame extends JFrame {
         Edge edge = new Edge(1, "Edge 1", from, to);
         optionsPanel.showEdgeMenu(edge);
 
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, graphPanel, optionsPanel);
-        splitPane.setDividerLocation(750);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, optionsPanel, graphPanel);
+
+        // Give the graph panel the majority of the horizontal space
+        splitPane.setDividerLocation(220);
+
         return splitPane;
     }
 }

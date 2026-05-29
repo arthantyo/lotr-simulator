@@ -2,6 +2,7 @@ package nl.rug.oop.rts.view;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 
 import lombok.Getter;
 import nl.rug.oop.rts.model.Graph;
@@ -17,23 +18,46 @@ public class GraphMouseListener extends MouseAdapter {
     private final Graph graph;
 
     /**
+     * Panel that draws the graph and keeps track of the current pan offset.
+     */
+    private final GraphPanel graphPanel;
+
+    /**
      * Radius for detecting clicks on nodes.
      */
     @Getter
     private Node selectedNode = null;
 
     /**
-     * Radius for detecting clicks on nodes. Add more details here.
-     * @param graph Graph model that this listener will interact with. Must not be null.
-     */ 
+     * True while the user is dragging the background to pan the map.
+     */
+    private boolean panning;
+
+    /**
+     * Last mouse X position used to compute pan deltas.
+     */
+    private int lastMouseX;
+
+    /**
+     * Last mouse Y position used to compute pan deltas.
+     */
+    private int lastMouseY;
+
+    /**
+    * Radius for detecting clicks on nodes. Add more details here.
+    * @param graph Graph model that this listener will interact with. Must not be null.
+    * @param graphPanel Graph panel that will be repainted and panned.
+    */ 
     private static final int NODE_RADIUS = 40;
 
     /**
      * Constructor for the graph mouse listener.
      * @param graph Graph model that this listener will interact with. Must not be null.
+     * @param graphPanel Graph panel that will be repainted and panned.
      */
-    public GraphMouseListener(Graph graph) {
+    public GraphMouseListener(Graph graph, GraphPanel graphPanel) {
         this.graph = graph;
+        this.graphPanel = graphPanel;
     }
 
     /**
@@ -44,10 +68,18 @@ public class GraphMouseListener extends MouseAdapter {
     public void mousePressed(MouseEvent e) {
         int x = e.getX();
         int y = e.getY();
+        lastMouseX = x;
+        lastMouseY = y;
+        panning = false;
+
+        selectedNode = null;
+
+        double worldX = graphPanel.toWorldX(x);
+        double worldY = graphPanel.toWorldY(y);
 
         for (Node n : graph.getNodes()) {
-            int dx = x - n.getX();
-            int dy = y - n.getY();
+            double dx = worldX - n.getX();
+            double dy = worldY - n.getY();
 
             if (dx * dx + dy * dy <= NODE_RADIUS * NODE_RADIUS) {
                 selectedNode = n;
@@ -55,6 +87,21 @@ public class GraphMouseListener extends MouseAdapter {
             }
         }
 
+        if (selectedNode == null) {
+            panning = true;
+        }
+
+    }
+
+    /**
+     * Clamps an integer value between a minimum and maximum.
+     * @param value the value to clamp
+     * @param min lower bound
+     * @param max upper bound
+     * @return clamped value
+     */
+    private int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     /**
@@ -63,13 +110,32 @@ public class GraphMouseListener extends MouseAdapter {
      */
     @Override
     public void mouseDragged(MouseEvent e) {
-        if (selectedNode == null) {
+        int x = e.getX();
+        int y = e.getY();
+
+        int r = NODE_RADIUS / 2;
+
+        int minX = r;
+        int minY = r;
+        int maxX = graphPanel.getWorldWidth() - r;
+        int maxY = graphPanel.getWorldHeight() - r;
+
+        if (selectedNode != null) {
+            int newX = (int) Math.round(graphPanel.toWorldX(x));
+            int newY = (int) Math.round(graphPanel.toWorldY(y));
+
+            selectedNode.setX(clamp(newX, minX, maxX));
+            selectedNode.setY(clamp(newY, minY, maxY));
+
+            graphPanel.repaint();
             return;
         }
 
-        selectedNode.setX(e.getX());
-        selectedNode.setY(e.getY());
-        e.getComponent().repaint();
+        if (panning) {
+            graphPanel.panBy(x - lastMouseX, y - lastMouseY);
+            lastMouseX = x;
+            lastMouseY = y;
+        }
     }
 
     /**
@@ -79,7 +145,8 @@ public class GraphMouseListener extends MouseAdapter {
     @Override
     public void mouseReleased(MouseEvent e) {
         selectedNode = null;
-        e.getComponent().repaint();
+        panning = false;
+        graphPanel.repaint();
     }
     
 
@@ -92,24 +159,26 @@ public class GraphMouseListener extends MouseAdapter {
         int x = e.getX();
         int y = e.getY();
 
-        System.out.println("Mouse clicked at: (" + x + ", " + y + ")");
-
-        for (Node n : graph.getNodes()) {
-            int dx = x - n.getX();
-            int dy = y - n.getY();
-
-            if (dx * dx + dy * dy <= NODE_RADIUS * NODE_RADIUS) {
-                // TODO: Emit a node clicked event to the graph model
-                // TODO: highlight the clicked node in the UI
-                System.out.println("Node clicked: " + n.getName());
-                selectedNode = n;
-
-                break;
-            } else {
-                // TODO: Handle case when no node is clicked
-                System.out.println("Map is clicked, so remove node selection");
-                selectedNode = null;
-            }
+        if (selectedNode == null) {
+            return;
         }
+
+        double dx = graphPanel.toWorldX(x) - selectedNode.getX();
+        double dy = graphPanel.toWorldY(y) - selectedNode.getY();
+
+        if (dx * dx + dy * dy > NODE_RADIUS * NODE_RADIUS) {
+            selectedNode = null;
+            graphPanel.repaint();
+        }
+    }
+
+    /**
+     * Handle mouse wheel events to zoom the graph in and out.
+     * @param e mouse wheel event containing the scroll amount and cursor position
+     */
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        double zoomFactor = e.getWheelRotation() < 0 ? 1.1 : 1.0 / 1.1;
+        graphPanel.zoomBy(zoomFactor, e.getX(), e.getY());
     }
 }       
