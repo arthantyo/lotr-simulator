@@ -30,7 +30,8 @@ public class OptionsPanel extends JPanel {
         add(new JLabel("Nothing selected"));
     }
 
-    /** Sets the callback to be invoked when an edge's name is changed. 
+    /** 
+     * Sets the callback to be invoked when an edge's name is changed. 
      * 
      * @param onNameChanged the callback to invoke when an edge's name is changed
     */
@@ -48,10 +49,6 @@ public class OptionsPanel extends JPanel {
         repaint();
     }
 
-    /**
-     * 
-     * @param edge
-     */
     /**
      * Replaces the panel contents with an edge editing form.
      * Displays the edge's name as an editable text field, and shows

@@ -60,6 +60,7 @@ public class GraphMouseListener extends MouseAdapter {
      * @param graphPanel Graph panel that will be repainted and panned.
      * @param optionsPanel Options panel for displaying element details.
      */
+    
     public GraphMouseListener(Graph graph, GraphPanel graphPanel, OptionsPanel optionsPanel) {
         this.graph = graph;
         this.graphPanel = graphPanel;

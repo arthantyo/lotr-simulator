@@ -77,7 +77,6 @@ public class MainFrame extends JFrame {
         OptionsPanel optionsPanel = new OptionsPanel();
         GraphPanel graphPanel = new GraphPanel(graph,optionsPanel);
      
-
         optionsPanel.setOnNameChanged(graphPanel::repaint);
       
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, optionsPanel, graphPanel);
