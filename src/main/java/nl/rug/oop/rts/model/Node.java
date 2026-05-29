@@ -9,7 +9,7 @@ public class Node {
     /**
      * ID of the node. Add more details here.
      */
-    @Getter 
+    @Getter
     private final int id;
 
     /**
@@ -20,7 +20,8 @@ public class Node {
 
     /**
      * Constructor for Node. Add more details here.
-     * @param id ID of the node. Must be unique within the graph.
+     *
+     * @param id   ID of the node. Must be unique within the graph.
      * @param name Name of the node. Add more details here.
      */
     public Node(int id, String name) {

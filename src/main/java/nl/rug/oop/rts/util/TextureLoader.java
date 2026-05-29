@@ -22,7 +22,7 @@ import java.util.Map;
  * The following is an example usage where we use the texture loader to retrieve
  * the image "images/factions/elves.pmg" with a size of 100x100:
  * </p>
- * 
+ *
  * <pre>
  * <code>
  *     TextureLoader.getInstance().getTexture("factionElves", 100, 100);
@@ -62,7 +62,9 @@ import java.util.Map;
  */
 public class TextureLoader {
 
-    /** Main instance for the singleton. */
+    /**
+     * Main instance for the singleton.
+     */
     private static final TextureLoader INSTANCE = new TextureLoader();
     /**
      * Subdirectory name where all textures are stored.
@@ -90,10 +92,14 @@ public class TextureLoader {
      */
     private static final String EFFECTS_SUB_DIR = "effects";
 
-    /** A map of all the textures. */
+    /**
+     * A map of all the textures.
+     */
     private final Map<String, InputStream> textures;
 
-    /** A map of all the parsed and cached textures. */
+    /**
+     * A map of all the parsed and cached textures.
+     */
     private final Map<String, Image> cachedTextures;
 
     /**
@@ -121,7 +127,7 @@ public class TextureLoader {
      * @param first Name/path of the file within the resource folder to load.
      * @param more  Additional items of the path.
      * @return Input stream used to read the loaded file. Throws an exception if the
-     *         file does not exist.
+     * file does not exist.
      */
     private InputStream getResourceFromPath(String first, String... more) {
         String resourceFilePath = Path.of(first, more).toString();
