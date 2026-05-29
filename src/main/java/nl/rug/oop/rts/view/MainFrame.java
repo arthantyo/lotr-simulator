@@ -26,17 +26,6 @@ public class MainFrame extends JFrame {
         setLocationRelativeTo(null);
 
         Graph graph = new Graph();
-        
-        // === 1.3 test ===
-        Node gondor = new Node(0, "Gondor", 250, 300);
-        Node mordor = new Node(1, "Mordor", 700, 500);
-        Node rohan  = new Node(2, "Rohan",  450, 150);
-        graph.addNode(gondor);
-        graph.addNode(mordor);
-        graph.addNode(rohan);
-        graph.addEdge(new Edge(0, "Path1", gondor, mordor));
-        graph.addEdge(new Edge(1, "Path2", gondor, rohan));
-
         GraphPanel graphPanel = new GraphPanel(graph);
         add(graphPanel);
 
@@ -52,15 +41,14 @@ public class MainFrame extends JFrame {
         menuBar.add(addEdgeButton);
         menuBar.add(removeNodeButton);
         menuBar.add(removeEdgeButton);
-
         setJMenuBar(menuBar);
 
-        GraphPanel graphPanel1 = new GraphPanel();
+        GraphPanel graphPanel1 = new GraphPanel(graph);
         OptionsPanel optionsPanel = new OptionsPanel();
 
         // Temporary hardcoded nodes and edge to demonstrate the options panel
-        Node from = new Node(1, "Node 1");
-        Node to = new Node(2, "Node 2");
+        Node from = new Node(1, "Node 1", 100, 100);
+        Node to = new Node(2, "Node 2", 300, 200);
         Edge edge = new Edge(1, "Edge 1", from, to);
         optionsPanel.showEdgeMenu(edge);
 

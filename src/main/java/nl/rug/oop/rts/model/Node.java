@@ -5,7 +5,7 @@ import lombok.Setter;
 import lombok.AllArgsConstructor;
 
 /**
- * Represents a node (vertex) in the graph with an immutable id and name.
+ * Represents a node (vertex) in the graph with an immutable id and an editable name.
  */
 @Getter
 @Setter
@@ -19,7 +19,7 @@ public class Node {
     /**
      * Name of the node. Add more details here.
      */
-    private final String name;
+    private String name;
 
     /**
      * X coordinate of the node on the panel.
