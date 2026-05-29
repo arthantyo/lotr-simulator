@@ -1,6 +1,7 @@
 package nl.rug.oop.rts.model;
 
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Represents a node (vertex) in the graph with an immutable id and name.
@@ -16,7 +17,8 @@ public class Node {
      * Name of the node. Add more details here.
      */
     @Getter
-    private final String name;
+    @Setter
+    private String name;
 
     /**
      * Constructor for Node. Add more details here.

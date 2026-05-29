@@ -18,7 +18,8 @@ public class Edge {
      * Name of the edge. Add more details here.
      */
     @Getter
-    private final String name;
+    @Setter
+    private  String name;
 
     /**
      * Node from which the edge starts. Add more details here.
