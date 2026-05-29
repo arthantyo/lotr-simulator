@@ -178,7 +178,8 @@ public class GraphMouseListener extends MouseAdapter {
      */
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {
-        double zoomFactor = e.getWheelRotation() < 0 ? 1.1 : 1.0 / 1.1;
+        double notches = e.getPreciseWheelRotation();
+        double zoomFactor = Math.pow(1.1, -notches);
         graphPanel.zoomBy(zoomFactor, e.getX(), e.getY());
     }
 }       

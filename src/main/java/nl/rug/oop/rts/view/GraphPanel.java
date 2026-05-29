@@ -204,6 +204,8 @@ public class GraphPanel extends JPanel {
     public void zoomBy(double factor, int anchorX, int anchorY) {
         double newZoom = clamp(zoom * factor, MIN_ZOOM, MAX_ZOOM);
         double worldX = toWorldX(anchorX);
+
+        System.out.println("World coordinates before zoom: (" + worldX + ", " + toWorldY(anchorY) + ")");
         double worldY = toWorldY(anchorY);
 
         zoom = newZoom;
