@@ -72,25 +72,28 @@ public class GraphMouseListener extends MouseAdapter {
         lastMouseY = y;
         panning = false;
 
-        selectedNode = null;
-
         double worldX = graphPanel.toWorldX(x);
         double worldY = graphPanel.toWorldY(y);
 
+        Node clickedNode = null;
         for (Node n : graph.getNodes()) {
             double dx = worldX - n.getX();
             double dy = worldY - n.getY();
 
             if (dx * dx + dy * dy <= NODE_RADIUS * NODE_RADIUS) {
-                selectedNode = n;
+                clickedNode = n;
                 break;
             }
         }
 
-        if (selectedNode == null) {
+        if (clickedNode != null) {
+            selectedNode = clickedNode;
+        } else {
+            selectedNode = null;
             panning = true;
         }
 
+        graphPanel.repaint();
     }
 
     /**
@@ -144,7 +147,6 @@ public class GraphMouseListener extends MouseAdapter {
      */
     @Override
     public void mouseReleased(MouseEvent e) {
-        selectedNode = null;
         panning = false;
         graphPanel.repaint();
     }
@@ -156,20 +158,7 @@ public class GraphMouseListener extends MouseAdapter {
      */
     @Override
     public void mouseClicked(MouseEvent e) {
-        int x = e.getX();
-        int y = e.getY();
-
-        if (selectedNode == null) {
-            return;
-        }
-
-        double dx = graphPanel.toWorldX(x) - selectedNode.getX();
-        double dy = graphPanel.toWorldY(y) - selectedNode.getY();
-
-        if (dx * dx + dy * dy > NODE_RADIUS * NODE_RADIUS) {
-            selectedNode = null;
-            graphPanel.repaint();
-        }
+        // Selection is now handled in mousePressed
     }
 
     /**

@@ -58,6 +58,11 @@ public class GraphPanel extends JPanel {
     private static final double MAX_ZOOM = 3.0;
 
     /**
+     * Mouse listener for tracking selected node.
+     */
+    private GraphMouseListener mouseListener;
+
+    /**
      * Creates the graph panel with a temporary background color and subscribes
      * to graph events so the panel repaints automatically when the graph changes.
      *
@@ -74,7 +79,7 @@ public class GraphPanel extends JPanel {
         graph.addListener(GraphEventType.EDGE_ADDED, data -> repaint());
         graph.addListener(GraphEventType.EDGE_DELETED, data -> repaint());
 
-        GraphMouseListener mouseListener = new GraphMouseListener(graph, this);
+        this.mouseListener = new GraphMouseListener(graph, this);
         addMouseListener(mouseListener);
         addMouseMotionListener(mouseListener);
         addMouseWheelListener(mouseListener);
@@ -130,6 +135,10 @@ public class GraphPanel extends JPanel {
             int x = node.getX() - NODE_SIZE / 2;
             int y = node.getY() - NODE_SIZE / 2;
 
+            if (node == mouseListener.getSelectedNode()) {
+                g.setColor(Color.RED);
+                g.fillRect(x - 5, y - 5, NODE_SIZE + 10, NODE_SIZE + 10);
+            }
             g.setColor(Color.ORANGE);
             g.fillRect(x, y, NODE_SIZE, NODE_SIZE);
 
