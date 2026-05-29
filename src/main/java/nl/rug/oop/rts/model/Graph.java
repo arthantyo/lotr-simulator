@@ -5,9 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-
 /**
- * Observable graph model that contains nodes and edges and notifies
+ * Observable graph model that contains nodes and edges and notifies.
  */
 public class Graph {
     /**
