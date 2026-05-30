@@ -8,6 +8,5 @@ public enum GraphEventType {
     NODE_DELETED,
     EDGE_ADDED,
     EDGE_DELETED,
-    NODE_CLICKED,
-    EDGE_CLICKED
+    SELECTION_CHANGED,
 }

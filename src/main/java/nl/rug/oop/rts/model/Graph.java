@@ -27,12 +27,24 @@ public class Graph {
      */
     private Map<GraphEventType, ArrayList<Consumer<Object>>> listeners = new HashMap<>();
 
+    private Node selectedNode = null;
+    private Edge selectedEdge = null;
+    private int nextNodeId = 0;
+    private int nextEdgeId = 0;
     /**
      * Constructor for Graph. Add more details here.
      */
     public Graph() {
         this.nodes = new ArrayList<Node>();
         this.edges = new ArrayList<Edge>();
+    }
+
+    public int nextNodeId() {
+        return nextNodeId++;
+    }
+
+    public int nextEdgeId() {
+        return nextEdgeId++;
     }
 
     /**
@@ -108,6 +120,10 @@ public class Graph {
 
         emit(GraphEventType.NODE_DELETED, removed);
 
+        if (removed == selectedNode) {
+            clearSelection();
+        }
+
         return removed;
     }
 
@@ -119,8 +135,6 @@ public class Graph {
      */
     public Node getNode(int id) {
         Node target = this.nodes.stream().filter(node -> node.getId() == id).findFirst().orElse(null);
-
-        emit(GraphEventType.NODE_CLICKED, target);
 
         return target;
     }
@@ -157,6 +171,10 @@ public class Graph {
 
         emit(GraphEventType.EDGE_DELETED, removed);
 
+        if (removed == selectedEdge) {
+            clearSelection();
+        }
+
         return removed;
     }
 
@@ -172,26 +190,24 @@ public class Graph {
                 .findFirst()
                 .orElse(null);
 
-        emit(GraphEventType.EDGE_CLICKED, target);
-
         return target;
     }
 
-    /**
-     * Returns the list of nodes.
-     *
-     * @return list of nodes
-     */
-    public ArrayList<Node> getNodes() {
-        return nodes;
+    public void setSelectedNode(Node node) {
+        this.selectedNode = node;
+        this.selectedEdge = null;
+        emit(GraphEventType.SELECTION_CHANGED, node);
     }
 
-    /**
-     * Returns the list of edges.
-     *
-     * @return list of edges
-     */
-    public ArrayList<Edge> getEdges() {
-        return edges;
+    public void setSelectedEdge(Edge edge) {
+        this.selectedEdge = edge;
+        this.selectedNode = null;
+        emit(GraphEventType.SELECTION_CHANGED, edge);
+    }
+
+    public void clearSelection() {
+        this.selectedNode = null;
+        this.selectedEdge = null;
+        emit(GraphEventType.SELECTION_CHANGED, null);
     }
 }
