@@ -4,8 +4,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
-import lombok.Getter;
 import nl.rug.oop.rts.model.*;
+
 /**
  * Mouse listener for handling mouse events on the graph panel.
  */
@@ -35,6 +35,9 @@ public class GraphMouseListener extends MouseAdapter {
      */
     private int lastMouseY;
 
+    /**
+     * Start node of the edge being added, or null when not in edge-adding mode.
+     */
     private Node edgeStartNode = null;
 
     /**
@@ -48,9 +51,7 @@ public class GraphMouseListener extends MouseAdapter {
      * Constructor for the graph mouse listener.
      * @param graph Graph model that this listener will interact with. Must not be null.
      * @param graphPanel Graph panel that will be repainted and panned.
-     * @param optionsPanel Options panel for displaying element details.
      */
-    
     public GraphMouseListener(Graph graph, GraphPanel graphPanel) {
         this.graph = graph;
         this.graphPanel = graphPanel;
@@ -96,6 +97,13 @@ public class GraphMouseListener extends MouseAdapter {
         panning = true;
     }
 
+    /**
+     * Finds the node located at the given world coordinates, if any.
+     *
+     * @param worldX x coordinate in world space
+     * @param worldY y coordinate in world space
+     * @return the node at that position, or null if none
+     */
     private Node findNodeAt(double worldX, double worldY) {
         for (Node node : graph.getNodes()) {
             double dx = Math.abs(worldX-node.getX());
@@ -107,6 +115,13 @@ public class GraphMouseListener extends MouseAdapter {
         return null;
     }
 
+    /**
+     * Finds the edge located near the given world coordinates, if any.
+     *
+     * @param worldX x coordinate in world space
+     * @param worldY y coordinate in world space
+     * @return the edge near that position, or null if none
+     */
     private Edge findEdgeAt(double worldX, double worldY) {
         final double EDGE_CLICK_THRESHOLD = 10.0; 
         for (Edge edge : graph.getEdges()) {
@@ -120,12 +135,32 @@ public class GraphMouseListener extends MouseAdapter {
         return null;
     }
 
+    /**
+     * Computes the Euclidean distance between two points.
+     *
+     * @param px x coordinate of the first point
+     * @param py y coordinate of the first point
+     * @param x  x coordinate of the second point
+     * @param y  y coordinate of the second point
+     * @return the distance between the two points
+     */
     private double distancePointToPoint(double px, double py, double x, double y) {
         double dx = px - x;
         double dy = py - y;
         return Math.sqrt(dx * dx + dy * dy);
     }
 
+    /**
+     * Computes the distance from a point to a line segment.
+     *
+     * @param px x coordinate of the point
+     * @param py y coordinate of the point
+     * @param x1 x coordinate of the segment start
+     * @param y1 y coordinate of the segment start
+     * @param x2 x coordinate of the segment end
+     * @param y2 y coordinate of the segment end
+     * @return the shortest distance to the segment, or a large value if the projection falls outside it
+     */
     private double distancePointToLine(double px, double py, double x1, double y1, double x2, double y2) {
         // vector AB from (x1, y1) to (x2, y2)
         double lx = x2 - x1;
@@ -150,7 +185,12 @@ public class GraphMouseListener extends MouseAdapter {
         }
     }
 
-    public void StartAddingEdge(Node startNode) {
+    /**
+     * Enters edge-adding mode, using the given node as the start of the new edge.
+     *
+     * @param startNode the node from which the new edge will be created
+     */
+    public void startAddingEdge(Node startNode) {
         this.edgeStartNode = startNode; 
     }
 
