@@ -42,12 +42,8 @@ public class GraphMouseListener extends MouseAdapter {
     * @param graph Graph model that this listener will interact with. Must not be null.
     * @param graphPanel Graph panel that will be repainted and panned.
     */ 
-    private static final int NODE_RADIUS = 40;
+    private static final int NODE_SIZE = 40;
 
-    /**
-     * Panel for displaying details of the selected graph element.
-     */
-    private final OptionsPanel optionsPanel;
     /**
      * Constructor for the graph mouse listener.
      * @param graph Graph model that this listener will interact with. Must not be null.
@@ -55,10 +51,9 @@ public class GraphMouseListener extends MouseAdapter {
      * @param optionsPanel Options panel for displaying element details.
      */
     
-    public GraphMouseListener(Graph graph, GraphPanel graphPanel, OptionsPanel optionsPanel) {
+    public GraphMouseListener(Graph graph, GraphPanel graphPanel) {
         this.graph = graph;
         this.graphPanel = graphPanel;
-        this.optionsPanel = optionsPanel;
     }
 
     /**
@@ -119,7 +114,7 @@ public class GraphMouseListener extends MouseAdapter {
         int x = e.getX();
         int y = e.getY();
 
-        int r = NODE_RADIUS / 2;
+        int r = NODE_SIZE / 2;
 
         int minX = r;
         int minY = r;
