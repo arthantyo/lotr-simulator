@@ -117,7 +117,7 @@ public class GraphPanel extends JPanel {
      * @param g Graphics context used to draw the edges.
      */
     private void drawEdges(Graphics g) {
-        g.setColor(Color.LIGHT_GRAY);
+        g.setColor(Color.BLUE);
         for (Edge edge : graph.getEdges()) {
             Node a = edge.getFrom();
             Node b = edge.getTo();

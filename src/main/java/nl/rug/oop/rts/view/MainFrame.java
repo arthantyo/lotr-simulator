@@ -45,8 +45,26 @@ public class MainFrame extends JFrame {
      */
     private Graph createGraph() {
         Graph graph = new Graph();
-        graph.addNode(new Node(1, "Node 1", 100, 100));
-        graph.addNode(new Node(2, "Node 2", 300, 200));
+
+        // Temporary hardcoded nodes and edges for testing the rendering.
+        Node gondor = new Node(1, "Gondor", 150, 150);
+        Node rohan = new Node(2, "Rohan", 400, 120);
+        Node mordor = new Node(3, "Mordor", 650, 250);
+        Node isengard = new Node(4, "Isengard", 300, 400);
+        Node lorien = new Node(5, "Lorien", 600, 480);
+
+        graph.addNode(gondor);
+        graph.addNode(rohan);
+        graph.addNode(mordor);
+        graph.addNode(isengard);
+        graph.addNode(lorien);
+
+        graph.addEdge(new Edge(1, "Gondor-Rohan", gondor, rohan));
+        graph.addEdge(new Edge(2, "Rohan-Mordor", rohan, mordor));
+        graph.addEdge(new Edge(3, "Gondor-Isengard", gondor, isengard));
+        graph.addEdge(new Edge(4, "Isengard-Lorien", isengard, lorien));
+        graph.addEdge(new Edge(5, "Mordor-Lorien", mordor, lorien));
+
         return graph;
     }
 
@@ -77,11 +95,6 @@ public class MainFrame extends JFrame {
     private JSplitPane createSplitPane(Graph graph) {
         GraphPanel graphPanel = new GraphPanel(graph);
         OptionsPanel optionsPanel = new OptionsPanel();
-
-        Node from = new Node(1, "Node 1", 100, 100);
-        Node to = new Node(2, "Node 2", 300, 200);
-        Edge edge = new Edge(1, "Edge 1", from, to);
-        optionsPanel.showEdgeMenu(edge);
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, optionsPanel, graphPanel);
 
