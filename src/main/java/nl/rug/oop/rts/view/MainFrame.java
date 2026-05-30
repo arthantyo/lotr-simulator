@@ -51,7 +51,7 @@ public class MainFrame extends JFrame {
      * according to the current selection.
      *
      * @param graph         the graph model the buttons operate on
-     * @param mouseListener listener used to start edge creation
+     * @param graphPanel    the panel displaying the graph
      * @return the configured menu bar
      */
     private JMenuBar createMenuBar(Graph graph, GraphPanel graphPanel) {
@@ -81,6 +81,7 @@ public class MainFrame extends JFrame {
      * Creates the button that adds a new node to the graph.
      *
      * @param graph the graph model the button operates on
+     * @param graphPanel the panel used to determine the initial position of the new node
      * @return the configured button
      */
     private JButton createAddNodeButton(Graph graph, GraphPanel graphPanel) {
