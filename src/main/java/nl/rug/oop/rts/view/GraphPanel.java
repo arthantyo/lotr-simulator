@@ -67,10 +67,11 @@ public class GraphPanel extends JPanel {
      * to graph events so the panel repaints automatically when the graph changes.
      *
      * @param graph The graph model this panel will observe and draw.
+     * @param optionsPanel The options panel used for displaying element details.
      */
-    public GraphPanel(Graph graph) {
+    public GraphPanel(Graph graph,OptionsPanel optionsPanel) {
         this.graph = graph;
-        
+
         backgroundImage = TextureLoader.getInstance()
                         .getTexture("mapTexture", 800, 600);
 
@@ -79,7 +80,7 @@ public class GraphPanel extends JPanel {
         graph.addListener(GraphEventType.EDGE_ADDED, data -> repaint());
         graph.addListener(GraphEventType.EDGE_DELETED, data -> repaint());
 
-        this.mouseListener = new GraphMouseListener(graph, this);
+        this.mouseListener = new GraphMouseListener(graph, this, optionsPanel);
         addMouseListener(mouseListener);
         addMouseMotionListener(mouseListener);
         addMouseWheelListener(mouseListener);
