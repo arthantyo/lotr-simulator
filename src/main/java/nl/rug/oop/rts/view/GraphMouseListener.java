@@ -4,9 +4,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
-import lombok.Getter;
-import nl.rug.oop.rts.model.Graph;
-import nl.rug.oop.rts.model.Node;
+import nl.rug.oop.rts.model.*;
 
 /**
  * Mouse listener for handling mouse events on the graph panel.
@@ -21,12 +19,6 @@ public class GraphMouseListener extends MouseAdapter {
      * Panel that draws the graph and keeps track of the current pan offset.
      */
     private final GraphPanel graphPanel;
-
-    /**
-     * Radius for detecting clicks on nodes.
-     */
-    @Getter
-    private Node selectedNode = null;
 
     /**
      * True while the user is dragging the background to pan the map.
@@ -44,6 +36,11 @@ public class GraphMouseListener extends MouseAdapter {
     private int lastMouseY;
 
     /**
+     * Start node of the edge being added, or null when not in edge-adding mode.
+     */
+    private Node edgeStartNode = null;
+
+    /**
     * Radius for detecting clicks on nodes. Add more details here.
     * @param graph Graph model that this listener will interact with. Must not be null.
     * @param graphPanel Graph panel that will be repainted and panned.
@@ -51,20 +48,13 @@ public class GraphMouseListener extends MouseAdapter {
     private static final int NODE_RADIUS = 60;
 
     /**
-     * Panel for displaying details of the selected graph element.
-     */
-    private final OptionsPanel optionsPanel;
-    /**
      * Constructor for the graph mouse listener.
      * @param graph Graph model that this listener will interact with. Must not be null.
      * @param graphPanel Graph panel that will be repainted and panned.
-     * @param optionsPanel Options panel for displaying element details.
      */
-    
-    public GraphMouseListener(Graph graph, GraphPanel graphPanel, OptionsPanel optionsPanel) {
+    public GraphMouseListener(Graph graph, GraphPanel graphPanel) {
         this.graph = graph;
         this.graphPanel = graphPanel;
-        this.optionsPanel = optionsPanel;
     }
 
     /**
@@ -82,29 +72,128 @@ public class GraphMouseListener extends MouseAdapter {
         double worldX = graphPanel.toWorldX(x);
         double worldY = graphPanel.toWorldY(y);
 
-        Node clickedNode = null;
+        Node clickedNode = findNodeAt(worldX, worldY);
+        if (clickedNode != null) {
+            if (edgeStartNode != null && edgeStartNode != clickedNode) {
+                int id = graph.nextEdgeId();
+                String name = "Edge " + id;
+                Edge newEdge = new Edge(id, name, edgeStartNode, clickedNode);
+                graph.addEdge(newEdge);
+                edgeStartNode = null;
+                // Select the new edge (not a node) so a stray drag does not move the start node.
+                graph.setSelectedEdge(newEdge);
+            } else {
+                graph.setSelectedNode(clickedNode);
+            }
+            return;
+        }
 
-        for (Node n : graph.getNodes()) {
-            double dx = worldX - n.getX();
-            double dy = worldY - n.getY();
+        Edge clickedEdge = findEdgeAt(worldX, worldY);
+        if (clickedEdge != null) {
+            graph.setSelectedEdge(clickedEdge);
+            return;
+        }
 
-            // Check if the click is within the radius of the node
-            if (dx * dx + dy * dy <= NODE_RADIUS * NODE_RADIUS) {
-                clickedNode = n;
-                break;
+        edgeStartNode = null;
+        graph.clearSelection();
+        panning = true;
+    }
+
+    /**
+     * Finds the node located at the given world coordinates, if any.
+     *
+     * @param worldX x coordinate in world space
+     * @param worldY y coordinate in world space
+     * @return the node at that position, or null if none
+     */
+    private Node findNodeAt(double worldX, double worldY) {
+        for (Node node : graph.getNodes()) {
+            double dx = Math.abs(worldX-node.getX());
+            double dy = Math.abs(worldY-node.getY());
+            if (dx<=NODE_RADIUS&&dy<=NODE_RADIUS) {
+                return node;
             }
         }
+        return null;
+    }
 
-        if (clickedNode != null) {
-            selectedNode = clickedNode;
-            optionsPanel.showNodeMenu(clickedNode);
-        } else {
-            selectedNode = null;
-            optionsPanel.showNothingSelected();
-            panning = true;
+    /**
+     * Finds the edge located near the given world coordinates, if any.
+     *
+     * @param worldX x coordinate in world space
+     * @param worldY y coordinate in world space
+     * @return the edge near that position, or null if none
+     */
+    private Edge findEdgeAt(double worldX, double worldY) {
+        final double EDGE_CLICK_THRESHOLD = 10.0; 
+        for (Edge edge : graph.getEdges()) {
+            Node n1 = edge.getFrom();
+            Node n2 = edge.getTo();
+            double distance = distancePointToLine(worldX, worldY, n1.getX(), n1.getY(), n2.getX(), n2.getY());
+            if (distance <= EDGE_CLICK_THRESHOLD) {
+                return edge;
+            }
         }
+        return null;
+    }
 
-        graphPanel.repaint();
+    /**
+     * Computes the Euclidean distance between two points.
+     *
+     * @param px x coordinate of the first point
+     * @param py y coordinate of the first point
+     * @param x  x coordinate of the second point
+     * @param y  y coordinate of the second point
+     * @return the distance between the two points
+     */
+    private double distancePointToPoint(double px, double py, double x, double y) {
+        double dx = px - x;
+        double dy = py - y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    /**
+     * Computes the distance from a point to a line segment.
+     *
+     * @param px x coordinate of the point
+     * @param py y coordinate of the point
+     * @param x1 x coordinate of the segment start
+     * @param y1 y coordinate of the segment start
+     * @param x2 x coordinate of the segment end
+     * @param y2 y coordinate of the segment end
+     * @return the shortest distance to the segment, or a large value if the projection falls outside it
+     */
+    private double distancePointToLine(double px, double py, double x1, double y1, double x2, double y2) {
+        // vector AB from (x1, y1) to (x2, y2)
+        double lx = x2 - x1;
+        double ly = y2 - y1;
+        // vector AP from (x1, y1) to (px, py)
+        double dx = px - x1;
+        double dy = py - y1;
+
+        // project AP onto AB to find the closest point on the line
+        double dotProduct = dx * lx + dy * ly;
+        double lineLenSquared = lx * lx + ly * ly; 
+        double ratio = dotProduct / lineLenSquared; 
+
+        if (ratio < 0) {
+            return 1000;
+        } else if (ratio > 1) {
+            return 1000;
+        } else {
+            double closestX = x1 + ratio * lx;
+            double closestY = y1 + ratio * ly;
+            return distancePointToPoint(px, py, closestX, closestY);
+        }
+    }
+
+    /**
+     * Enters edge-adding mode, using the given node as the start of the new edge.
+     *
+     * @param startNode the node from which the new edge will be created
+     */
+    public void startAddingEdge(Node startNode) {
+        this.edgeStartNode = startNode; 
     }
 
     /**
@@ -116,12 +205,13 @@ public class GraphMouseListener extends MouseAdapter {
         int x = e.getX();
         int y = e.getY();
 
-        if (selectedNode != null) {
+        Node sel = graph.getSelectedNode();
+        if (sel != null) {
             int newX = (int) Math.round(graphPanel.toWorldX(x));
             int newY = (int) Math.round(graphPanel.toWorldY(y));
 
-            selectedNode.setX(newX);
-            selectedNode.setY(newY);
+            sel.setX(newX);
+            sel.setY(newY);
 
             graphPanel.repaint();
             return;
