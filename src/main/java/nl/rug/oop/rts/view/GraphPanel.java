@@ -73,7 +73,7 @@ public class GraphPanel extends JPanel {
      * @param graph The graph model this panel will observe and draw.
      * @param optionsPanel The options panel used for displaying element details.
      */
-    public GraphPanel(Graph graph,OptionsPanel optionsPanel) {
+    public GraphPanel(Graph graph) {
         this.graph = graph;
 
         backgroundImage = TextureLoader.getInstance()
@@ -83,8 +83,9 @@ public class GraphPanel extends JPanel {
         graph.addListener(GraphEventType.NODE_DELETED, data -> repaint());
         graph.addListener(GraphEventType.EDGE_ADDED, data -> repaint());
         graph.addListener(GraphEventType.EDGE_DELETED, data -> repaint());
+        graph.addListener(GraphEventType.SELECTION_CHANGED, data -> repaint());
 
-        this.mouseListener = new GraphMouseListener(graph, this, optionsPanel);
+        this.mouseListener = new GraphMouseListener(graph, this);
         addMouseListener(mouseListener);
         addMouseMotionListener(mouseListener);
         addMouseWheelListener(mouseListener);
@@ -147,7 +148,7 @@ public class GraphPanel extends JPanel {
             int x = node.getX() - NODE_SIZE / 2;
             int y = node.getY() - NODE_SIZE / 2;
 
-            if (node == mouseListener.getSelectedNode()) {
+            if (node == graph.getSelectedNode()) {
                 g.setColor(Color.RED);
                 g.fillRect(x - 5, y - 5, NODE_SIZE + 10, NODE_SIZE + 10);
             }
