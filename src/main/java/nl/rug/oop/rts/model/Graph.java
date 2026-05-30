@@ -5,9 +5,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Observable graph model that contains nodes and edges and notifies.
  */
+@Getter
+@Setter
 public class Graph {
     /**
      * List of nodes in the graph.
