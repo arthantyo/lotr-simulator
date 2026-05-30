@@ -48,7 +48,7 @@ public class GraphMouseListener extends MouseAdapter {
     * @param graph Graph model that this listener will interact with. Must not be null.
     * @param graphPanel Graph panel that will be repainted and panned.
     */ 
-    private static final int NODE_RADIUS = 40;
+    private static final int NODE_RADIUS = 60;
 
     /**
      * Panel for displaying details of the selected graph element.
@@ -83,10 +83,12 @@ public class GraphMouseListener extends MouseAdapter {
         double worldY = graphPanel.toWorldY(y);
 
         Node clickedNode = null;
+
         for (Node n : graph.getNodes()) {
             double dx = worldX - n.getX();
             double dy = worldY - n.getY();
 
+            // Check if the click is within the radius of the node
             if (dx * dx + dy * dy <= NODE_RADIUS * NODE_RADIUS) {
                 clickedNode = n;
                 break;
@@ -106,17 +108,6 @@ public class GraphMouseListener extends MouseAdapter {
     }
 
     /**
-     * Clamps an integer value between a minimum and maximum.
-     * @param value the value to clamp
-     * @param min lower bound
-     * @param max upper bound
-     * @return clamped value
-     */
-    private int clamp(int value, int min, int max) {
-        return Math.max(min, Math.min(max, value));
-    }
-
-    /**
      * Handle mouse dragged events.
      * @param e MouseEvent containing details about the mouse dragged event.
      */
@@ -125,19 +116,12 @@ public class GraphMouseListener extends MouseAdapter {
         int x = e.getX();
         int y = e.getY();
 
-        int r = NODE_RADIUS / 2;
-
-        int minX = r;
-        int minY = r;
-        int maxX = graphPanel.getWorldWidth() - r;
-        int maxY = graphPanel.getWorldHeight() - r;
-
         if (selectedNode != null) {
             int newX = (int) Math.round(graphPanel.toWorldX(x));
             int newY = (int) Math.round(graphPanel.toWorldY(y));
 
-            selectedNode.setX(clamp(newX, minX, maxX));
-            selectedNode.setY(clamp(newY, minY, maxY));
+            selectedNode.setX(newX);
+            selectedNode.setY(newY);
 
             graphPanel.repaint();
             return;
@@ -160,16 +144,6 @@ public class GraphMouseListener extends MouseAdapter {
         graphPanel.repaint();
     }
     
-
-    /**
-     * Handle mouse clicked events.
-     * @param e MouseEvent containing details about the mouse clicked event.
-     */
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        // Selection is now handled in mousePressed
-    }
-
     /**
      * Handle mouse wheel events to zoom the graph in and out.
      * @param e mouse wheel event containing the scroll amount and cursor position

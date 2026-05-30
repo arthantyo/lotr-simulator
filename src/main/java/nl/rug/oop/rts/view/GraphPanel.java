@@ -50,16 +50,6 @@ public class GraphPanel extends JPanel {
     private double zoom = 1.0;
 
     /**
-     * Minimum allowed zoom level.
-     */
-    private static final double MIN_ZOOM = 0.5;
-
-    /**
-     * Maximum allowed zoom level.
-     */
-    private static final double MAX_ZOOM = 3.0;
-
-    /**
      * Mouse listener for tracking selected node.
      */
     private GraphMouseListener mouseListener;
@@ -101,13 +91,18 @@ public class GraphPanel extends JPanel {
         Graphics2D g2 = (Graphics2D) g.create();
 
         try {
-            g2.translate(panX, panY);
-            g2.scale(zoom, zoom);
+            // Draw background to fill entire panel (no transformations)
+            g2.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
 
-            g2.drawImage(backgroundImage, 0, 0, this);
+            // Apply transformations for graph elements only
+            Graphics2D g2Transformed = (Graphics2D) g2.create();
+            g2Transformed.translate(panX, panY);
+            g2Transformed.scale(zoom, zoom);
 
-            drawEdges(g2);
-            drawNodes(g2);
+            drawEdges(g2Transformed);
+            drawNodes(g2Transformed);
+
+            g2Transformed.dispose();
         } finally {
             // Dispose the graphics context to free up resources.
             g2.dispose();
@@ -184,16 +179,6 @@ public class GraphPanel extends JPanel {
         }
     }
 
-    /**
-     * Clamps a double value between a minimum and maximum.
-     * @param value the value to clamp
-     * @param min lower bound
-     * @param max upper bound
-     * @return clamped value
-     */
-    private double clamp(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
-    }
 
     /**
      * Returns the background width in world coordinates.
@@ -248,11 +233,11 @@ public class GraphPanel extends JPanel {
      * @param anchorY screen y coordinate to keep stable
      */
     public void zoomBy(double factor, int anchorX, int anchorY) {
-        double newZoom = clamp(zoom * factor, MIN_ZOOM, MAX_ZOOM);
+        double newZoom = zoom * factor;
         double worldX = toWorldX(anchorX);
-
-        System.out.println("World coordinates before zoom: (" + worldX + ", " + toWorldY(anchorY) + ")");
         double worldY = toWorldY(anchorY);
+
+        // System.out.println("World coordinates before zoom: (" + worldX + ", " + toWorldY(anchorY) + ")");
 
         zoom = newZoom;
         panX = (int) Math.round(anchorX - worldX * zoom);
