@@ -80,6 +80,8 @@ public class GraphMouseListener extends MouseAdapter {
                 Edge newEdge = new Edge(id, name, edgeStartNode, clickedNode);
                 graph.addEdge(newEdge);
                 edgeStartNode = null;
+                // Select the new edge (not a node) so a stray drag does not move the start node.
+                graph.setSelectedEdge(newEdge);
             } else {
                 graph.setSelectedNode(clickedNode);
             }
