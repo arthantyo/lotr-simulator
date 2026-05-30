@@ -3,6 +3,7 @@ package nl.rug.oop.rts.view;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.util.List;
 
 import nl.rug.oop.rts.model.*;
 
@@ -107,10 +108,13 @@ public class GraphMouseListener extends MouseAdapter {
      * @return the node at that position, or null if none
      */
     private Node findNodeAt(double worldX, double worldY) {
-        for (Node node : graph.getNodes()) {
-            double dx = Math.abs(worldX-node.getX());
-            double dy = Math.abs(worldY-node.getY());
-            if (dx<=NODE_RADIUS&&dy<=NODE_RADIUS) {
+        // Iterate in reverse draw order so the topmost (last-drawn) node is selected first.
+        List<Node> nodes = graph.getNodes();
+        for (int i = nodes.size() - 1; i >= 0; i--) {
+            Node node = nodes.get(i);
+            double dx = Math.abs(worldX - node.getX());
+            double dy = Math.abs(worldY - node.getY());
+            if (dx <= NODE_RADIUS && dy <= NODE_RADIUS) {
                 return node;
             }
         }
