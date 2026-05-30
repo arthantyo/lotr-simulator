@@ -27,10 +27,23 @@ public class Graph {
      */
     private Map<GraphEventType, ArrayList<Consumer<Object>>> listeners = new HashMap<>();
 
+    /**
+     * Currently selected node, or null if no node is selected.
+     */
     private Node selectedNode = null;
+    /**
+     * Currently selected edge, or null if no edge is selected.
+     */
     private Edge selectedEdge = null;
+    /**
+     * Counter used to hand out unique node ids.
+     */
     private int nextNodeId = 0;
+    /**
+     * Counter used to hand out unique edge ids.
+     */
     private int nextEdgeId = 0;
+
     /**
      * Constructor for Graph. Add more details here.
      */
@@ -39,10 +52,20 @@ public class Graph {
         this.edges = new ArrayList<Edge>();
     }
 
+    /**
+     * Returns the next unique node id and advances the counter.
+     *
+     * @return a unique node id
+     */
     public int nextNodeId() {
         return nextNodeId++;
     }
 
+    /**
+     * Returns the next unique edge id and advances the counter.
+     *
+     * @return a unique edge id
+     */
     public int nextEdgeId() {
         return nextEdgeId++;
     }
@@ -193,18 +216,31 @@ public class Graph {
         return target;
     }
 
+    /**
+     * Selects the given node, deselecting any selected edge, and notifies listeners.
+     *
+     * @param node the node to select
+     */
     public void setSelectedNode(Node node) {
         this.selectedNode = node;
         this.selectedEdge = null;
         emit(GraphEventType.SELECTION_CHANGED, node);
     }
 
+    /**
+     * Selects the given edge, deselecting any selected node, and notifies listeners.
+     *
+     * @param edge the edge to select
+     */
     public void setSelectedEdge(Edge edge) {
         this.selectedEdge = edge;
         this.selectedNode = null;
         emit(GraphEventType.SELECTION_CHANGED, edge);
     }
 
+    /**
+     * Clears the current selection and notifies listeners.
+     */
     public void clearSelection() {
         this.selectedNode = null;
         this.selectedEdge = null;
