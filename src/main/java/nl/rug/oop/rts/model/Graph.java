@@ -5,9 +5,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Observable graph model that contains nodes and edges and notifies.
  */
+@Getter
+@Setter
 public class Graph {
     /**
      * List of nodes in the graph.
@@ -23,11 +28,46 @@ public class Graph {
     private Map<GraphEventType, ArrayList<Consumer<Object>>> listeners = new HashMap<>();
 
     /**
+     * Currently selected node, or null if no node is selected.
+     */
+    private Node selectedNode = null;
+    /**
+     * Currently selected edge, or null if no edge is selected.
+     */
+    private Edge selectedEdge = null;
+    /**
+     * Counter used to hand out unique node ids.
+     */
+    private int nextNodeId = 0;
+    /**
+     * Counter used to hand out unique edge ids.
+     */
+    private int nextEdgeId = 0;
+
+    /**
      * Constructor for Graph. Add more details here.
      */
     public Graph() {
         this.nodes = new ArrayList<Node>();
         this.edges = new ArrayList<Edge>();
+    }
+
+    /**
+     * Returns the next unique node id and advances the counter.
+     *
+     * @return a unique node id
+     */
+    public int nextNodeId() {
+        return nextNodeId++;
+    }
+
+    /**
+     * Returns the next unique edge id and advances the counter.
+     *
+     * @return a unique edge id
+     */
+    public int nextEdgeId() {
+        return nextEdgeId++;
     }
 
     /**
@@ -103,6 +143,10 @@ public class Graph {
 
         emit(GraphEventType.NODE_DELETED, removed);
 
+        if (removed == selectedNode) {
+            clearSelection();
+        }
+
         return removed;
     }
 
@@ -114,8 +158,6 @@ public class Graph {
      */
     public Node getNode(int id) {
         Node target = this.nodes.stream().filter(node -> node.getId() == id).findFirst().orElse(null);
-
-        emit(GraphEventType.NODE_CLICKED, target);
 
         return target;
     }
@@ -152,6 +194,10 @@ public class Graph {
 
         emit(GraphEventType.EDGE_DELETED, removed);
 
+        if (removed == selectedEdge) {
+            clearSelection();
+        }
+
         return removed;
     }
 
@@ -167,26 +213,37 @@ public class Graph {
                 .findFirst()
                 .orElse(null);
 
-        emit(GraphEventType.EDGE_CLICKED, target);
-
         return target;
     }
 
     /**
-     * Returns the list of nodes.
+     * Selects the given node, deselecting any selected edge, and notifies listeners.
      *
-     * @return list of nodes
+     * @param node the node to select
      */
-    public ArrayList<Node> getNodes() {
-        return nodes;
+    public void setSelectedNode(Node node) {
+        this.selectedNode = node;
+        this.selectedEdge = null;
+        emit(GraphEventType.SELECTION_CHANGED, node);
     }
 
     /**
-     * Returns the list of edges.
+     * Selects the given edge, deselecting any selected node, and notifies listeners.
      *
-     * @return list of edges
+     * @param edge the edge to select
      */
-    public ArrayList<Edge> getEdges() {
-        return edges;
+    public void setSelectedEdge(Edge edge) {
+        this.selectedEdge = edge;
+        this.selectedNode = null;
+        emit(GraphEventType.SELECTION_CHANGED, edge);
+    }
+
+    /**
+     * Clears the current selection and notifies listeners.
+     */
+    public void clearSelection() {
+        this.selectedNode = null;
+        this.selectedEdge = null;
+        emit(GraphEventType.SELECTION_CHANGED, null);
     }
 }

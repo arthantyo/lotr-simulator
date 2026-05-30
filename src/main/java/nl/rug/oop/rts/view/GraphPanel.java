@@ -7,11 +7,13 @@ import java.awt.Image;
 
 import javax.swing.JPanel;
 
+import lombok.Getter;
 import nl.rug.oop.rts.model.Edge;
 import nl.rug.oop.rts.model.Graph;
 import nl.rug.oop.rts.model.GraphEventType;
 import nl.rug.oop.rts.model.Node;
 import nl.rug.oop.rts.util.TextureLoader;
+import java.awt.BasicStroke;
 
 /**
  * Panel where the graph will be drawn.
@@ -60,16 +62,21 @@ public class GraphPanel extends JPanel {
     /**
      * Mouse listener for tracking selected node.
      */
+    @Getter
     private GraphMouseListener mouseListener;
+
+    /**
+     * Stroke used to draw edges.
+     */
+    private final BasicStroke defaultStroke = new BasicStroke(3);
 
     /**
      * Creates the graph panel with a temporary background color and subscribes
      * to graph events so the panel repaints automatically when the graph changes.
      *
      * @param graph The graph model this panel will observe and draw.
-     * @param optionsPanel The options panel used for displaying element details.
      */
-    public GraphPanel(Graph graph,OptionsPanel optionsPanel) {
+    public GraphPanel(Graph graph) {
         this.graph = graph;
 
         backgroundImage = TextureLoader.getInstance()
@@ -79,8 +86,9 @@ public class GraphPanel extends JPanel {
         graph.addListener(GraphEventType.NODE_DELETED, data -> repaint());
         graph.addListener(GraphEventType.EDGE_ADDED, data -> repaint());
         graph.addListener(GraphEventType.EDGE_DELETED, data -> repaint());
+        graph.addListener(GraphEventType.SELECTION_CHANGED, data -> repaint());
 
-        this.mouseListener = new GraphMouseListener(graph, this, optionsPanel);
+        this.mouseListener = new GraphMouseListener(graph, this);
         addMouseListener(mouseListener);
         addMouseMotionListener(mouseListener);
         addMouseWheelListener(mouseListener);
@@ -118,10 +126,17 @@ public class GraphPanel extends JPanel {
      * @param g Graphics context used to draw the edges.
      */
     private void drawEdges(Graphics g) {
-        g.setColor(Color.LIGHT_GRAY);
+        Graphics2D g2 = (Graphics2D) g;
         for (Edge edge : graph.getEdges()) {
             Node a = edge.getFrom();
             Node b = edge.getTo();
+            if (edge == graph.getSelectedEdge()) {
+                g2.setColor(Color.RED);
+                g2.setStroke(defaultStroke);
+            } else {
+                g2.setColor(Color.BLUE);
+                g2.setStroke(defaultStroke);
+            }
             g.drawLine(a.getX(), a.getY(), b.getX(), b.getY());
         }
     }
@@ -136,7 +151,7 @@ public class GraphPanel extends JPanel {
             int x = node.getX() - NODE_SIZE / 2;
             int y = node.getY() - NODE_SIZE / 2;
 
-            if (node == mouseListener.getSelectedNode()) {
+            if (node == graph.getSelectedNode()) {
                 g.setColor(Color.RED);
                 g.fillRect(x - 5, y - 5, NODE_SIZE + 10, NODE_SIZE + 10);
             }
