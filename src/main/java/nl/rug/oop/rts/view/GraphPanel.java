@@ -7,12 +7,12 @@ import java.awt.Image;
 
 import javax.swing.JPanel;
 
+import lombok.Getter;
 import nl.rug.oop.rts.model.Edge;
 import nl.rug.oop.rts.model.Graph;
 import nl.rug.oop.rts.model.GraphEventType;
 import nl.rug.oop.rts.model.Node;
 import nl.rug.oop.rts.util.TextureLoader;
-
 /**
  * Panel where the graph will be drawn.
  */

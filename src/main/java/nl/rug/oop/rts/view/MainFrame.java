@@ -5,9 +5,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JSplitPane;
 
-import nl.rug.oop.rts.model.Graph;
-import nl.rug.oop.rts.model.Node;
-
+import nl.rug.oop.rts.model.*;
 /**
  * Main frame of the application. Serves as the top-level window,
  * containing a toolbar for graph manipulation actions and a horizontally

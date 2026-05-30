@@ -5,9 +5,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
 import lombok.Getter;
-import nl.rug.oop.rts.model.Graph;
-import nl.rug.oop.rts.model.Node;
-
+import nl.rug.oop.rts.model.*;
 /**
  * Mouse listener for handling mouse events on the graph panel.
  */
