@@ -14,6 +14,7 @@ import nl.rug.oop.rts.model.GraphEventType;
 import nl.rug.oop.rts.model.Node;
 import nl.rug.oop.rts.util.TextureLoader;
 import java.awt.BasicStroke;
+
 /**
  * Panel where the graph will be drawn.
  */
@@ -64,14 +65,16 @@ public class GraphPanel extends JPanel {
     @Getter
     private GraphMouseListener mouseListener;
 
-    private final BasicStroke DEFAULT_STROKE = new BasicStroke(3);
+    /**
+     * Stroke used to draw edges.
+     */
+    private final BasicStroke defaultStroke = new BasicStroke(3);
 
     /**
      * Creates the graph panel with a temporary background color and subscribes
      * to graph events so the panel repaints automatically when the graph changes.
      *
      * @param graph The graph model this panel will observe and draw.
-     * @param optionsPanel The options panel used for displaying element details.
      */
     public GraphPanel(Graph graph) {
         this.graph = graph;
@@ -129,10 +132,10 @@ public class GraphPanel extends JPanel {
             Node b = edge.getTo();
             if (edge == graph.getSelectedEdge()) {
                 g2.setColor(Color.RED);
-                g2.setStroke(DEFAULT_STROKE);
+                g2.setStroke(defaultStroke);
             } else {
                 g2.setColor(Color.BLUE);
-                g2.setStroke(DEFAULT_STROKE);
+                g2.setStroke(defaultStroke);
             }
             g.drawLine(a.getX(), a.getY(), b.getX(), b.getY());
         }
