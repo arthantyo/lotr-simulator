@@ -60,7 +60,14 @@ public class GraphPanel extends JPanel {
     /**
      * Stroke used to draw edges.
      */
-    private final BasicStroke defaultStroke = new BasicStroke(3);
+    private final BasicStroke defaultStroke = new BasicStroke(
+        2.0f,                   
+        BasicStroke.CAP_ROUND,  
+        BasicStroke.JOIN_ROUND,  
+        0,
+        new float[]{10.0f, 6.0f},
+        0
+    );
 
     /**
      * Creates the graph panel with a temporary background color and subscribes
@@ -139,61 +146,101 @@ public class GraphPanel extends JPanel {
     }
 
     /**
-     * Draws all nodes of the graph as orange squares with their name labels.
+     * Draws all nodes in the graph.
      *
-     * @param g Graphics context used to draw the nodes.
+     * @param g Graphics context used for rendering.
      */
     private void drawNodes(Graphics g) {
-        
         for (Node node : graph.getNodes()) {
-            int x = node.getX() - NODE_SIZE / 2;
-            int y = node.getY() - NODE_SIZE / 2;
-            int centerX = node.getX();
-            int centerY = node.getY();
-
-            int imageSize = NODE_SIZE * 2;
-
-            Image nodeImage = TextureLoader.getInstance()
-                        .getTexture("node2", x, y);
-
-
-            int padding = 12;
-
-            if (node == graph.getSelectedNode()) {
-                g.setColor(Color.RED);
-
-                g.fillRoundRect(
-                    x - padding,
-                    y - padding - 6,
-                    NODE_SIZE + padding * 2,
-                    NODE_SIZE + padding * 3 , 12 , 12
-                );
-            }
-            
-            g.setColor(Color.ORANGE);
-            g.fillRect(x, y, NODE_SIZE, NODE_SIZE);
-            g.drawImage(
-                nodeImage,
-                centerX - imageSize / 2,
-                centerY - imageSize / 2,
-                imageSize,
-                imageSize,
-                this
-            );
-            g.setColor(Color.WHITE);
-            FontMetrics fm = g.getFontMetrics();
-
-            String name = node.getName();
-
-            g.setFont(new Font("Arial", Font.PLAIN, 18));
-            g.drawString(
-                name,
-                node.getX() - NODE_SIZE / 2,
-                node.getY() + fm.getAscent() / 2
-            );
+            drawNode(g, node);
         }
     }
 
+    /**
+     * Draws a single node, including its selection highlight,
+     * image, and name label.
+     *
+     * @param g Graphics context used for rendering.
+     * @param node The node to draw.
+     */
+    private void drawNode(Graphics g, Node node) {
+        int x = node.getX() - NODE_SIZE / 2;
+        int y = node.getY() - NODE_SIZE / 2;
+
+        if (node == graph.getSelectedNode()) {
+            drawSelectionHighlight(g, x, y);
+        }
+
+        drawNodeImage(g, node, x, y);
+        drawNodeLabel(g, node);
+    }
+
+    /**
+     * Draws a rounded red highlight behind the selected node.
+     *
+     * @param g Graphics context used for rendering.
+     * @param x Top-left x-coordinate of the node.
+     * @param y Top-left y-coordinate of the node.
+     */
+    private void drawSelectionHighlight(Graphics g, int x, int y) {
+        int padding = 12;
+
+        g.setColor(Color.RED);
+        g.fillRoundRect(
+            x - padding,
+            y - padding - 6,
+            NODE_SIZE + padding * 2,
+            NODE_SIZE + padding * 3,
+            12,
+            12
+        );
+    }
+
+    /**
+     * Draws the node texture centered on the node's position.
+     *
+     * @param g Graphics context used for rendering.
+     * @param node The node whose texture is drawn.
+     * @param x Top-left x-coordinate of the node.
+     * @param y Top-left y-coordinate of the node.
+     */
+    private void drawNodeImage(Graphics g, Node node, int x, int y) {
+        int imageSize = NODE_SIZE * 2;
+
+        Image nodeImage = TextureLoader.getInstance()
+                .getTexture("node2", x, y);
+
+        g.drawImage(
+            nodeImage,
+            node.getX() - imageSize / 2,
+            node.getY() - imageSize / 2,
+            imageSize,
+            imageSize,
+            this
+        );
+    }
+
+    /**
+     * Draws the node's name centered on the node.
+     *
+     * @param g Graphics context used for rendering.
+     * @param node The node whose label is drawn.
+     */
+    private void drawNodeLabel(Graphics g, Node node) {
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 18));
+
+        FontMetrics fm = g.getFontMetrics();
+        String name = node.getName();
+
+        int textWidth = fm.stringWidth(name);
+
+        g.drawString(
+            name,
+            node.getX() - textWidth / 2,
+            node.getY() + fm.getAscent() / 2
+        );
+    }
 
     /**
      * Returns the background width in world coordinates.
