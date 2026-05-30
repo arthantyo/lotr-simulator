@@ -5,7 +5,10 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JSplitPane;
 
-import nl.rug.oop.rts.model.*;
+import nl.rug.oop.rts.model.Edge;
+import nl.rug.oop.rts.model.Graph;
+import nl.rug.oop.rts.model.GraphEventType;
+import nl.rug.oop.rts.model.Node;
 
 /**
  * Main frame of the application. Serves as the top-level window,
@@ -28,7 +31,7 @@ public class MainFrame extends JFrame {
         optionsPanel.setOnNameChanged(graphPanel::repaint);
 
         wireOptionsMenu(graph, optionsPanel);
-        setJMenuBar(createMenuBar(graph, graphPanel.getMouseListener()));
+        setJMenuBar(createMenuBar(graph, graphPanel));
         add(createSplitPane(graphPanel, optionsPanel));
     }
 
@@ -51,8 +54,9 @@ public class MainFrame extends JFrame {
      * @param mouseListener listener used to start edge creation
      * @return the configured menu bar
      */
-    private JMenuBar createMenuBar(Graph graph, GraphMouseListener mouseListener) {
-        JButton addNode = createAddNodeButton(graph);
+    private JMenuBar createMenuBar(Graph graph, GraphPanel graphPanel) {
+        GraphMouseListener mouseListener = graphPanel.getMouseListener();
+        JButton addNode = createAddNodeButton(graph, graphPanel);
         JButton addEdge = createAddEdgeButton(graph, mouseListener);
         JButton removeNode = createRemoveNodeButton(graph);
         JButton removeEdge = createRemoveEdgeButton(graph);
@@ -79,11 +83,18 @@ public class MainFrame extends JFrame {
      * @param graph the graph model the button operates on
      * @return the configured button
      */
-    private JButton createAddNodeButton(Graph graph) {
+    private JButton createAddNodeButton(Graph graph, GraphPanel graphPanel) {
         JButton button = new JButton("Add Node");
         button.addActionListener(e -> {
             int id = graph.nextNodeId();
-            graph.addNode(new Node(id, "Node " + id, 400, 300));
+
+            int centerX = graphPanel.getWidth() / 2;
+            int centerY = graphPanel.getHeight() / 2;
+
+            int worldX = (int) Math.round(graphPanel.toWorldX(centerX));
+            int worldY = (int) Math.round(graphPanel.toWorldY(centerY));
+
+            graph.addNode(new Node(id, "Node " + id, worldX, worldY));
         });
         return button;
     }
