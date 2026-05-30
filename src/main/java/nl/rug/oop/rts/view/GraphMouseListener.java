@@ -21,12 +21,6 @@ public class GraphMouseListener extends MouseAdapter {
     private final GraphPanel graphPanel;
 
     /**
-     * Radius for detecting clicks on nodes.
-     */
-    @Getter
-    private Node selectedNode = null;
-
-    /**
      * True while the user is dragging the background to pan the map.
      */
     private boolean panning;
@@ -40,6 +34,8 @@ public class GraphMouseListener extends MouseAdapter {
      * Last mouse Y position used to compute pan deltas.
      */
     private int lastMouseY;
+
+    private Node edgeStartNode = null;
 
     /**
     * Radius for detecting clicks on nodes. Add more details here.
