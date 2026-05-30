@@ -1,8 +1,10 @@
 package nl.rug.oop.rts.view;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 
 import javax.swing.JPanel;
@@ -22,7 +24,7 @@ public class GraphPanel extends JPanel {
     /**
      * Size in pixels of the square used to draw each node.
      */
-    private static final int NODE_SIZE = 40;
+    private static final int NODE_SIZE = 60;
 
     /**
      * The graph model this panel observes and draws.
@@ -50,16 +52,6 @@ public class GraphPanel extends JPanel {
     private double zoom = 1.0;
 
     /**
-     * Minimum allowed zoom level.
-     */
-    private static final double MIN_ZOOM = 0.5;
-
-    /**
-     * Maximum allowed zoom level.
-     */
-    private static final double MAX_ZOOM = 3.0;
-
-    /**
      * Mouse listener for tracking selected node.
      */
     @Getter
@@ -68,7 +60,14 @@ public class GraphPanel extends JPanel {
     /**
      * Stroke used to draw edges.
      */
-    private final BasicStroke defaultStroke = new BasicStroke(3);
+    private final BasicStroke defaultStroke = new BasicStroke(
+        2.0f,                   
+        BasicStroke.CAP_ROUND,  
+        BasicStroke.JOIN_ROUND,  
+        0,
+        new float[]{10.0f, 6.0f},
+        0
+    );
 
     /**
      * Creates the graph panel with a temporary background color and subscribes
@@ -107,13 +106,18 @@ public class GraphPanel extends JPanel {
         Graphics2D g2 = (Graphics2D) g.create();
 
         try {
-            g2.translate(panX, panY);
-            g2.scale(zoom, zoom);
+            // Draw background to fill entire panel (no transformations)
+            g2.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
 
-            g2.drawImage(backgroundImage, 0, 0, this);
+            // Apply transformations for graph elements only
+            Graphics2D g2Transformed = (Graphics2D) g2.create();
+            g2Transformed.translate(panX, panY);
+            g2Transformed.scale(zoom, zoom);
 
-            drawEdges(g2);
-            drawNodes(g2);
+            drawEdges(g2Transformed);
+            drawNodes(g2Transformed);
+
+            g2Transformed.dispose();
         } finally {
             // Dispose the graphics context to free up resources.
             g2.dispose();
@@ -142,36 +146,100 @@ public class GraphPanel extends JPanel {
     }
 
     /**
-     * Draws all nodes of the graph as orange squares with their name labels.
+     * Draws all nodes in the graph.
      *
-     * @param g Graphics context used to draw the nodes.
+     * @param g Graphics context used for rendering.
      */
     private void drawNodes(Graphics g) {
         for (Node node : graph.getNodes()) {
-            int x = node.getX() - NODE_SIZE / 2;
-            int y = node.getY() - NODE_SIZE / 2;
-
-            if (node == graph.getSelectedNode()) {
-                g.setColor(Color.RED);
-                g.fillRect(x - 5, y - 5, NODE_SIZE + 10, NODE_SIZE + 10);
-            }
-            g.setColor(Color.ORANGE);
-            g.fillRect(x, y, NODE_SIZE, NODE_SIZE);
-
-            g.setColor(Color.WHITE);
-            g.drawString(node.getName(), node.getX() - 15, node.getY() + 5);
+            drawNode(g, node);
         }
     }
 
     /**
-     * Clamps a double value between a minimum and maximum.
-     * @param value the value to clamp
-     * @param min lower bound
-     * @param max upper bound
-     * @return clamped value
+     * Draws a single node, including its selection highlight,
+     * image, and name label.
+     *
+     * @param g Graphics context used for rendering.
+     * @param node The node to draw.
      */
-    private double clamp(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
+    private void drawNode(Graphics g, Node node) {
+        int x = node.getX() - NODE_SIZE / 2;
+        int y = node.getY() - NODE_SIZE / 2;
+
+        if (node == graph.getSelectedNode()) {
+            drawSelectionHighlight(g, x, y);
+        }
+
+        drawNodeImage(g, node, x, y);
+        drawNodeLabel(g, node);
+    }
+
+    /**
+     * Draws a rounded red highlight behind the selected node.
+     *
+     * @param g Graphics context used for rendering.
+     * @param x Top-left x-coordinate of the node.
+     * @param y Top-left y-coordinate of the node.
+     */
+    private void drawSelectionHighlight(Graphics g, int x, int y) {
+        int padding = 12;
+
+        g.setColor(Color.RED);
+        g.fillRoundRect(
+            x - padding,
+            y - padding - 6,
+            NODE_SIZE + padding * 2,
+            NODE_SIZE + padding * 3,
+            12,
+            12
+        );
+    }
+
+    /**
+     * Draws the node texture centered on the node's position.
+     *
+     * @param g Graphics context used for rendering.
+     * @param node The node whose texture is drawn.
+     * @param x Top-left x-coordinate of the node.
+     * @param y Top-left y-coordinate of the node.
+     */
+    private void drawNodeImage(Graphics g, Node node, int x, int y) {
+        int imageSize = NODE_SIZE * 2;
+
+        Image nodeImage = TextureLoader.getInstance()
+                .getTexture("node2", x, y);
+
+        g.drawImage(
+            nodeImage,
+            node.getX() - imageSize / 2,
+            node.getY() - imageSize / 2,
+            imageSize,
+            imageSize,
+            this
+        );
+    }
+
+    /**
+     * Draws the node's name centered on the node.
+     *
+     * @param g Graphics context used for rendering.
+     * @param node The node whose label is drawn.
+     */
+    private void drawNodeLabel(Graphics g, Node node) {
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 18));
+
+        FontMetrics fm = g.getFontMetrics();
+        String name = node.getName();
+
+        int textWidth = fm.stringWidth(name);
+
+        g.drawString(
+            name,
+            node.getX() - textWidth / 2,
+            node.getY() + fm.getAscent() / 2
+        );
     }
 
     /**
@@ -227,11 +295,11 @@ public class GraphPanel extends JPanel {
      * @param anchorY screen y coordinate to keep stable
      */
     public void zoomBy(double factor, int anchorX, int anchorY) {
-        double newZoom = clamp(zoom * factor, MIN_ZOOM, MAX_ZOOM);
+        double newZoom = zoom * factor;
         double worldX = toWorldX(anchorX);
-
-        System.out.println("World coordinates before zoom: (" + worldX + ", " + toWorldY(anchorY) + ")");
         double worldY = toWorldY(anchorY);
+
+        // System.out.println("World coordinates before zoom: (" + worldX + ", " + toWorldY(anchorY) + ")");
 
         zoom = newZoom;
         panX = (int) Math.round(anchorX - worldX * zoom);
