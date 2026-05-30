@@ -1,8 +1,10 @@
 package nl.rug.oop.rts.view;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 
 import javax.swing.JPanel;
@@ -20,7 +22,7 @@ public class GraphPanel extends JPanel {
     /**
      * Size in pixels of the square used to draw each node.
      */
-    private static final int NODE_SIZE = 40;
+    private static final int NODE_SIZE = 60;
 
     /**
      * The graph model this panel observes and draws.
@@ -132,19 +134,53 @@ public class GraphPanel extends JPanel {
      * @param g Graphics context used to draw the nodes.
      */
     private void drawNodes(Graphics g) {
+        
         for (Node node : graph.getNodes()) {
             int x = node.getX() - NODE_SIZE / 2;
             int y = node.getY() - NODE_SIZE / 2;
+            int centerX = node.getX();
+            int centerY = node.getY();
+
+            int imageSize = NODE_SIZE * 2;
+
+            Image nodeImage = TextureLoader.getInstance()
+                        .getTexture("node2", x, y);
+
+
+            int padding = 12;
 
             if (node == mouseListener.getSelectedNode()) {
                 g.setColor(Color.RED);
-                g.fillRect(x - 5, y - 5, NODE_SIZE + 10, NODE_SIZE + 10);
+
+                g.fillRoundRect(
+                    x - padding,
+                    y - padding - 6,
+                    NODE_SIZE + padding * 2,
+                    NODE_SIZE + padding * 3 , 12 , 12
+                );
             }
+            
             g.setColor(Color.ORANGE);
             g.fillRect(x, y, NODE_SIZE, NODE_SIZE);
-
+            g.drawImage(
+                nodeImage,
+                centerX - imageSize / 2,
+                centerY - imageSize / 2,
+                imageSize,
+                imageSize,
+                this
+            );
             g.setColor(Color.WHITE);
-            g.drawString(node.getName(), node.getX() - 15, node.getY() + 5);
+            FontMetrics fm = g.getFontMetrics();
+
+            String name = node.getName();
+
+            g.setFont(new Font("Arial", Font.PLAIN, 18));
+            g.drawString(
+                name,
+                node.getX() - NODE_SIZE / 2,
+                node.getY() + fm.getAscent() / 2
+            );
         }
     }
 
