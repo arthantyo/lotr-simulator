@@ -20,9 +20,11 @@ public class MainFrame extends JFrame {
      */
     public MainFrame() {
         configureWindow();
-        Graph graph = new Graph(); 
-        setJMenuBar(createMenuBar());
-        add(createSplitPane(graph));
+
+        Graph graph = createGraph();
+        GraphPanel graphPanel = new GraphPanel(graph);
+        OptionsPanel optionsPanel = new OptionsPanel(graph);
+        optionsPanel.setOnNameChanged(graphPanel::repaint);
     }
 
     /**
@@ -40,13 +42,51 @@ public class MainFrame extends JFrame {
      * Builds the top menu bar with graph action buttons.
      * @return the configured menu bar
      */
-    private JMenuBar createMenuBar() {
+    private JMenuBar createMenuBar(Graph graph, GraphMouseListener mouseListener) {
         JMenuBar menuBar = new JMenuBar();
-
         JButton addNodeButton = new JButton("Add Node");
         JButton addEdgeButton = new JButton("Add Edge");
         JButton removeNodeButton = new JButton("Remove Node");
         JButton removeEdgeButton = new JButton("Remove Edge");
+
+        addNodeButton.addActionListener(e -> {
+            int id = graph.nextNodeId();
+            graph.addNode(new Node (id, "Node " + id, 400, 300));
+        });
+
+        addEdgeButton.addActionListener(e -> {
+            Node sel = graph.getSelectedNode();
+            if (sel != null) {
+                mouseListener.StartAddingEdge(sel);
+            }
+        });
+
+        removeNodeButton.addActionListener(e -> {
+            Node sel = graph.getSelectedNode();
+            if (sel != null) {
+                graph.deleteNode(sel.getId());
+            }
+        });
+
+        removeEdgeButton.addActionListener(e -> {
+            Edge sel = graph.getSelectedEdge();
+            if (sel != null) {
+                graph.deleteEdge(sel.getId());
+            }
+        });
+
+        addEdgeButton.setEnabled(false);
+        removeNodeButton.setEnabled(false);
+        removeEdgeButton.setEnabled(false);
+
+        graph.addListener(GraphEventType.SELECTION_CHANGED, data -> {
+            boolean nodeSelected = graph.getSelectedNode() != null;
+            boolean edgeSelected = graph.getSelectedEdge() != null;
+
+            addEdgeButton.setEnabled(nodeSelected);
+            removeNodeButton.setEnabled(nodeSelected);
+            removeEdgeButton.setEnabled(edgeSelected);
+        });
 
         menuBar.add(addNodeButton);
         menuBar.add(addEdgeButton);
@@ -60,11 +100,7 @@ public class MainFrame extends JFrame {
      * @param graph graph used by the panels
      * @return a split pane with the graph view on the left and the options panel on the right
      */
-    private JSplitPane createSplitPane(Graph graph) {
-        OptionsPanel optionsPanel = new OptionsPanel();
-        GraphPanel graphPanel = new GraphPanel(graph);
-     
-        optionsPanel.setOnNameChanged(graphPanel::repaint);
+    private JSplitPane createSplitPane(GraphPanel graphPanel, OptionsPanel optionsPanel) {
       
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, optionsPanel, graphPanel);
 
