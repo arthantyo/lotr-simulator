@@ -13,6 +13,7 @@ import nl.rug.oop.rts.model.Graph;
 import nl.rug.oop.rts.model.GraphEventType;
 import nl.rug.oop.rts.model.Node;
 import nl.rug.oop.rts.util.TextureLoader;
+import java.awt.BasicStroke;
 /**
  * Panel where the graph will be drawn.
  */
@@ -60,7 +61,10 @@ public class GraphPanel extends JPanel {
     /**
      * Mouse listener for tracking selected node.
      */
+    @Getter
     private GraphMouseListener mouseListener;
+
+    private final BasicStroke DEFAULT_STROKE = new BasicStroke(3);
 
     /**
      * Creates the graph panel with a temporary background color and subscribes
@@ -118,10 +122,17 @@ public class GraphPanel extends JPanel {
      * @param g Graphics context used to draw the edges.
      */
     private void drawEdges(Graphics g) {
-        g.setColor(Color.BLUE);
+        Graphics2D g2 = (Graphics2D) g;
         for (Edge edge : graph.getEdges()) {
             Node a = edge.getFrom();
             Node b = edge.getTo();
+            if (edge == graph.getSelectedEdge()) {
+                g2.setColor(Color.RED);
+                g2.setStroke(DEFAULT_STROKE);
+            } else {
+                g2.setColor(Color.BLUE);
+                g2.setStroke(DEFAULT_STROKE);
+            }
             g.drawLine(a.getX(), a.getY(), b.getX(), b.getY());
         }
     }
