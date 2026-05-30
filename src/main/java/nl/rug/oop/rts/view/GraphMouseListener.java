@@ -71,27 +71,87 @@ public class GraphMouseListener extends MouseAdapter {
         double worldX = graphPanel.toWorldX(x);
         double worldY = graphPanel.toWorldY(y);
 
-        Node clickedNode = null;
-        for (Node n : graph.getNodes()) {
-            double dx = worldX - n.getX();
-            double dy = worldY - n.getY();
+        Node clickedNode = findNodeAt(worldX, worldY);
+        if (clickedNode != null) {
+            if (edgeStartNode != null && edgeStartNode != clickedNode) {
+                int id = graph.nextEdgeId();
+                String name = "Edge " + id;
+                Edge newEdge = new Edge(id, name, edgeStartNode, clickedNode);
+                graph.addEdge(newEdge);
+                edgeStartNode = null;
+            } else {
+                graph.setSelectedNode(clickedNode);
+            }
+            return;
+        }
 
-            if (dx * dx + dy * dy <= NODE_RADIUS * NODE_RADIUS) {
-                clickedNode = n;
-                break;
+        Edge clickedEdge = findEdgeAt(worldX, worldY);
+        if (clickedEdge != null) {
+            graph.setSelectedEdge(clickedEdge);
+            return;
+        }
+
+        edgeStartNode = null;
+        graph.clearSelection();
+        panning = true;
+    }
+
+    private Node findNodeAt(double worldX, double worldY) {
+        for (Node node : graph.getNodes()) {
+            double dx = Math.abs(worldX-node.getX());
+            double dy = Math.abs(worldY-node.getY());
+            if (dx<=NODE_SIZE&&dy<=NODE_SIZE) {
+                return node;
             }
         }
+        return null;
+    }
 
-        if (clickedNode != null) {
-            selectedNode = clickedNode;
-            optionsPanel.showNodeMenu(clickedNode);
-        } else {
-            selectedNode = null;
-            optionsPanel.showNothingSelected();
-            panning = true;
+    private Edge findEdgeAt(double worldX, double worldY) {
+        final double EDGE_CLICK_THRESHOLD = 10.0; 
+        for (Edge edge : graph.getEdges()) {
+            Node n1 = edge.getFrom();
+            Node n2 = edge.getTo();
+            double distance = distancePointToLine(worldX, worldY, n1.getX(), n1.getY(), n2.getX(), n2.getY());
+            if (distance <= EDGE_CLICK_THRESHOLD) {
+                return edge;
+            }
         }
+        return null;
+    }
 
-        graphPanel.repaint();
+    private double distancePointToPoint(double px, double py, double x, double y) {
+        double dx = px - x;
+        double dy = py - y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    private double distancePointToLine(double px, double py, double x1, double y1, double x2, double y2) {
+        // vector AB from (x1, y1) to (x2, y2)
+        double lx = x2 - x1;
+        double ly = y2 - y1;
+        // vector AP from (x1, y1) to (px, py)
+        double dx = px - x1;
+        double dy = py - y1;
+
+        // project AP onto AB to find the closest point on the line
+        double dotProduct = dx * lx + dy * ly;
+        double lineLenSquared = lx * lx + ly * ly; 
+        double ratio = dotProduct / lineLenSquared; 
+
+        if (ratio < 0) {
+            return 1000;
+        } else if (ratio > 1) {
+            return 1000;
+        } else {
+            double closestX = x1 + ratio * lx;
+            double closestY = y1 + ratio * ly;
+            return distancePointToPoint(px, py, closestX, closestY);
+        }
+    }
+
+    public void StartAddingEdge(Node startNode) {
+        this.edgeStartNode = startNode; 
     }
 
     /**
@@ -121,12 +181,13 @@ public class GraphMouseListener extends MouseAdapter {
         int maxX = graphPanel.getWorldWidth() - r;
         int maxY = graphPanel.getWorldHeight() - r;
 
-        if (selectedNode != null) {
+        Node sel = graph.getSelectedNode();
+        if (sel != null) {
             int newX = (int) Math.round(graphPanel.toWorldX(x));
             int newY = (int) Math.round(graphPanel.toWorldY(y));
 
-            selectedNode.setX(clamp(newX, minX, maxX));
-            selectedNode.setY(clamp(newY, minY, maxY));
+            sel.setX(clamp(newX, minX, maxX));
+            sel.setY(clamp(newY, minY, maxY));
 
             graphPanel.repaint();
             return;
