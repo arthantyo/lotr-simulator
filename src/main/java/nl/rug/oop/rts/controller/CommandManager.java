@@ -64,6 +64,17 @@ public class CommandManager {
     }
 
     /**
+     * Clears the entire undo and redo history. Used when the graph is replaced
+     * wholesale (e.g. when a simulation starts or ends), since recorded commands
+     * would otherwise reference detached, stale model objects.
+     */
+    public void clear() {
+        undoStack.clear();
+        redoStack.clear();
+        onChange.run();
+    }
+
+    /**
      * Undoes the most recently executed command, if any.
      */
     public void undo() {

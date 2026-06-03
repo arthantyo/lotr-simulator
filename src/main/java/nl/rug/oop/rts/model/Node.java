@@ -12,7 +12,6 @@ import java.util.ArrayList;
  */
 @Getter
 @Setter
-@AllArgsConstructor
 public class Node implements Nameable {
     /**
      * Unique identifier of the node.

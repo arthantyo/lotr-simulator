@@ -311,8 +311,7 @@ public class OptionsPanel extends JPanel {
         }
 
         Army army = new Army(faction, createRandomUnits(faction));
-        graph.addArmyToNode(node, army);
-        showNodeMenu(graph, node);
+        commandManager.executeCommand(new AddArmyCommand(graph, node, army));
     }
 
     /**
@@ -343,7 +342,6 @@ public class OptionsPanel extends JPanel {
         }
 
         Army armyToRemove = node.getArmies().get(node.getArmies().size() - 1);
-        graph.removeArmyFromNode(node, armyToRemove);
-        showNodeMenu(graph, node);
+        commandManager.executeCommand(new RemoveArmyCommand(graph, node, armyToRemove));
     }
 }

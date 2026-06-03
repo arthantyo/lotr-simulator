@@ -73,7 +73,7 @@ public class MainFrame extends JFrame {
         redo.setEnabled(false);
         undo.addActionListener(e -> commandManager.undo());
         redo.addActionListener(e -> commandManager.redo());
-        JButton[] simButtons = createSimulationButtons(graph);
+        JButton[] simButtons = createSimulationButtons(graph, commandManager);
         JButton startStop = simButtons[0];
         JButton stepForward = simButtons[1];
         JButton stepBack = simButtons[2];
@@ -92,16 +92,21 @@ public class MainFrame extends JFrame {
             graphPanel.repaint();
         });
 
+        return buildMenuBar(addNode, addEdge, removeNode, removeEdge,
+                undo, redo, stepBack, startStop, stepForward);
+    }
+
+    /**
+     * Assembles a menu bar containing the given buttons in order.
+     *
+     * @param buttons the buttons to add to the menu bar
+     * @return the assembled menu bar
+     */
+    private JMenuBar buildMenuBar(JButton... buttons) {
         JMenuBar menuBar = new JMenuBar();
-        menuBar.add(addNode);
-        menuBar.add(addEdge);
-        menuBar.add(removeNode);
-        menuBar.add(removeEdge);
-        menuBar.add(undo);
-        menuBar.add(redo);
-        menuBar.add(stepBack);
-        menuBar.add(startStop);
-        menuBar.add(stepForward);
+        for (JButton button : buttons) {
+            menuBar.add(button);
+        }
         return menuBar;
     }
 
@@ -203,9 +208,10 @@ public class MainFrame extends JFrame {
     /**
      * Creates the buttons that control the simulation and wires them to the model.
      * @param graph the graph model the buttons operate on
+     * @param commandManager manager whose edit history is cleared on simulation start/end
      * @return the configured buttons in an array: [start/stop button, step forward button, step back button]
      */
-    private JButton[] createSimulationButtons(Graph graph) {
+    private JButton[] createSimulationButtons(Graph graph, CommandManager commandManager) {
         JButton startStop = new JButton("Start Simulation");
         JButton stepForward = new JButton("▶");
         JButton stepBack = new JButton("◀");
@@ -214,21 +220,8 @@ public class MainFrame extends JFrame {
         Simulation sim = new Simulation(graph);
         var isRunning = new java.util.concurrent.atomic.AtomicBoolean(false);
 
-        startStop.addActionListener(e -> {
-            if (!isRunning.get()) {
-                isRunning.set(true);
-                startStop.setText("End Simulation");
-                hideSimulationButtons(startStop, stepForward, stepBack);
-                sim.startSimulation(graph);
-                repaint();
-            } else {
-                isRunning.set(false);
-                startStop.setText("Start Simulation");
-                hideSimulationButtons(startStop, stepForward, stepBack);
-                sim.endSimulation(graph);
-                repaint();
-            }
-        });
+        startStop.addActionListener(e -> toggleSimulation(
+                graph, sim, commandManager, isRunning, startStop, stepForward, stepBack));
 
         stepBack.addActionListener(e -> {
             sim.subtractTime(graph);
@@ -241,6 +234,36 @@ public class MainFrame extends JFrame {
         });
   
         return new JButton[]{ startStop, stepForward, stepBack };
+    }
+
+    /**
+     * Toggles the simulation between running and stopped. Updates the start/stop
+     * button text, hides the stepping buttons and clears the undo/redo history,
+     * since starting or ending a simulation resets the graph state.
+     *
+     * @param graph          the graph being simulated
+     * @param sim            the simulation controlling the graph
+     * @param commandManager manager whose edit history is cleared
+     * @param isRunning      flag tracking whether the simulation is running
+     * @param startStop      the start/stop button
+     * @param stepForward    the step-forward button
+     * @param stepBack       the step-back button
+     */
+    private void toggleSimulation(Graph graph, Simulation sim, CommandManager commandManager,
+            java.util.concurrent.atomic.AtomicBoolean isRunning,
+            JButton startStop, JButton stepForward, JButton stepBack) {
+        if (!isRunning.get()) {
+            isRunning.set(true);
+            startStop.setText("End Simulation");
+            sim.startSimulation(graph);
+        } else {
+            isRunning.set(false);
+            startStop.setText("Start Simulation");
+            sim.endSimulation(graph);
+        }
+        hideSimulationButtons(startStop, stepForward, stepBack);
+        commandManager.clear();
+        repaint();
     }
 
     /**
@@ -257,6 +280,14 @@ public class MainFrame extends JFrame {
                 optionsPanel.showEdgeMenu(graph.getSelectedEdge());
             } else {
                 optionsPanel.showNothingSelected();
+            }
+        });
+
+        // Rebuild the node menu when armies change (e.g. on undo/redo of army actions),
+        // so the displayed army list stays in sync with the model.
+        graph.addListener(GraphEventType.ARMIES_CHANGED, data -> {
+            if (graph.getSelectedNode() != null) {
+                optionsPanel.showNodeMenu(graph, graph.getSelectedNode());
             }
         });
     }
