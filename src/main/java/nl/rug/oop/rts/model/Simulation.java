@@ -42,7 +42,6 @@ public class Simulation {
         initialGraph = copyGraph(graph);
     }
 
-
     /**
      * Reverts the simulation to the previous time step.
      * @param graph  The graph to revert. Must not be null.
@@ -264,6 +263,23 @@ public class Simulation {
      */
     private Graph copyGraph(Graph source) {
         Graph copy = new Graph();
+
+        Map<Integer, Node> nodeCopiesById = copyNodes(source, copy);
+        copyEdges(source, copy, nodeCopiesById);
+        copyGraphMetadata(source, copy, nodeCopiesById);
+
+        return copy;
+    }
+
+    /**
+     * Deep-copies all nodes from {@code source} into {@code copy}, including their armies.
+     *
+     * @param source the graph to copy nodes from
+     * @param copy   the graph to copy nodes into
+     * @return a map of original node IDs to their corresponding copied {@link Node}s,
+     *         used to resolve edge endpoints and selection state
+     */
+    private Map<Integer, Node> copyNodes(Graph source, Graph copy) {
         Map<Integer, Node> nodeCopiesById = new HashMap<>();
 
         for (Node originalNode : source.getNodes()) {
@@ -272,45 +288,92 @@ public class Simulation {
                     originalNode.getName(),
                     originalNode.getX(),
                     originalNode.getY());
-            System.out.println("Copying node " + originalNode.getId() + " with armies: " + originalNode.getArmies().size());
-            // Deep copy armies: create new Army instances
+
             for (Army originalArmy : originalNode.getArmies()) {
                 nodeCopy.getArmies().add(copyArmy(originalArmy));
             }
+
             copy.getNodes().add(nodeCopy);
             nodeCopiesById.put(originalNode.getId(), nodeCopy);
         }
 
+        return nodeCopiesById;
+    }
+
+    /**
+     * Deep-copies all edges from {@code source} into {@code copy}, including their armies.
+     * Endpoint nodes are resolved via {@code nodeCopiesById}.
+     *
+     * @param source         the graph to copy edges from
+     * @param copy           the graph to copy edges into
+     * @param nodeCopiesById a map of original node IDs to copied {@link Node}s,
+     *                       used to wire up edge endpoints
+     */
+    private void copyEdges(Graph source, Graph copy, Map<Integer, Node> nodeCopiesById) {
         for (Edge originalEdge : source.getEdges()) {
             Edge edgeCopy = new Edge(
                     originalEdge.getId(),
                     originalEdge.getName(),
                     nodeCopiesById.get(originalEdge.getFrom().getId()),
                     nodeCopiesById.get(originalEdge.getTo().getId()));
-            // Deep copy armies: create new Army instances
+
             for (Army originalArmy : originalEdge.getArmies()) {
                 edgeCopy.getArmies().add(copyArmy(originalArmy));
             }
+
             copy.getEdges().add(edgeCopy);
         }
+    }
 
+    /**
+     * Copies ID counters and selection state from {@code source} onto {@code copy}.
+     *
+     * @param source         the graph to read metadata from
+     * @param copy           the graph to apply metadata to
+     * @param nodeCopiesById a map of original node IDs to copied {@link Node}s,
+     *                       used to restore the selected node reference
+     */
+    private void copyGraphMetadata(Graph source, Graph copy, Map<Integer, Node> nodeCopiesById) {
         copy.setNextNodeId(source.getNextNodeId());
         copy.setNextEdgeId(source.getNextEdgeId());
 
-        if (source.getSelectedNode() != null) {
-            copy.setSelectedNode(nodeCopiesById.get(source.getSelectedNode().getId()));
+        copySelectedNode(source, copy, nodeCopiesById);
+        copySelectedEdge(source, copy);
+    }
+
+    /**
+     * Restores the selected node on {@code copy} to the equivalent copied node,
+     * if one was selected in {@code source}.
+     *
+     * @param source         the graph to read the selected node from
+     * @param copy           the graph to apply the selected node to
+     * @param nodeCopiesById a map of original node IDs to copied {@link Node}s
+     */
+    private void copySelectedNode(Graph source, Graph copy, Map<Integer, Node> nodeCopiesById) {
+        if (source.getSelectedNode() == null) {
+            return;
+        }
+        copy.setSelectedNode(nodeCopiesById.get(source.getSelectedNode().getId()));
+    }
+
+    /**
+     * Restores the selected edge on {@code copy} to the equivalent copied edge,
+     * if one was selected in {@code source}.
+     *
+     * @param source the graph to read the selected edge from
+     * @param copy   the graph to apply the selected edge to
+     */
+    private void copySelectedEdge(Graph source, Graph copy) {
+        if (source.getSelectedEdge() == null){
+            return;
         }
 
-        if (source.getSelectedEdge() != null) {
-            for (Edge edge : copy.getEdges()) {
-                if (edge.getId() == source.getSelectedEdge().getId()) {
-                    copy.setSelectedEdge(edge);
-                    break;
-                }
+        for (Edge edge : copy.getEdges()) {
+            if (edge.getId() == source.getSelectedEdge().getId()) {
+                copy.setSelectedEdge(edge);
+                break;
             }
         }
-
-        return copy;
     }
 
     /**

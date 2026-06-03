@@ -1,12 +1,12 @@
 package nl.rug.oop.rts.view;
 
+import java.awt.Dimension;
+
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-
-import java.awt.Dimension;
 
 import nl.rug.oop.rts.model.Edge;
 import nl.rug.oop.rts.model.Graph;
@@ -168,6 +168,19 @@ public class MainFrame extends JFrame {
     }
 
     /**
+     * Hides the step forward and step back buttons and resets the start/stop button text.
+     *
+     * @param startStop the button that starts/stops the simulation
+     * @param stepForward the button that steps the simulation forward
+     * @param stepBack the button that steps the simulation backward
+     */
+    private void hideSimulationButtons(JButton startStop, JButton stepForward, JButton stepBack) {
+        startStop.setText("Start Simulation");
+        stepForward.setVisible(false);
+        stepBack.setVisible(false);
+    }
+
+    /**
      * Creates the buttons that control the simulation and wires them to the model.
      * @param graph the graph model the buttons operate on
      * @return the configured buttons in an array: [start/stop button, step forward button, step back button]
@@ -176,8 +189,7 @@ public class MainFrame extends JFrame {
         JButton startStop = new JButton("Start Simulation");
         JButton stepForward = new JButton("▶");
         JButton stepBack = new JButton("◀");
-        stepForward.hide();
-        stepBack.hide();
+        hideSimulationButtons(startStop, stepForward, stepBack);
 
         Simulation sim = new Simulation(graph);
         var isRunning = new java.util.concurrent.atomic.AtomicBoolean(false);
@@ -186,15 +198,13 @@ public class MainFrame extends JFrame {
             if (!isRunning.get()) {
                 isRunning.set(true);
                 startStop.setText("End Simulation");
-                stepForward.show();
-                stepBack.show();
+                hideSimulationButtons(startStop, stepForward, stepBack);
                 sim.startSimulation(graph);
                 repaint();
             } else {
                 isRunning.set(false);
                 startStop.setText("Start Simulation");
-                stepForward.hide();
-                stepBack.hide();
+                hideSimulationButtons(startStop, stepForward, stepBack);
                 sim.endSimulation(graph);
                 repaint();
             }
