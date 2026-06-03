@@ -16,7 +16,7 @@ import lombok.Getter;
 public class Simulation {
 
     /** The initial graph state. */
-    private final Graph initialGraph;
+    private Graph initialGraph;
 
     /**
      * Current time step of the simulation.
@@ -39,8 +39,9 @@ public class Simulation {
      * @param graph The initial graph state for the simulation. Must not be null.
      */
     public Simulation(Graph graph) {
-        initialGraph = graph;
+        initialGraph = copyGraph(graph);
     }
+
 
     /**
      * Reverts the simulation to the previous time step.
@@ -52,9 +53,13 @@ public class Simulation {
             return;
         }
 
+        if(timeStep == 0) {
+            System.out.println("Already at initial state, cannot revert further.");
+            return;
+        }
+
         Graph previousState = history.pop();
-        graph.setNodes(previousState.getNodes());
-        graph.setEdges(previousState.getEdges());
+        restoreGraphState(graph, previousState);
         timeStep--;
         System.out.println("Reverted simulation to time step " + timeStep);
     }
@@ -65,7 +70,8 @@ public class Simulation {
      * @param graph The graph to advance.
      */
     public void advanceTime(Graph graph) {
-        history.push(graph);
+        history.push(copyGraph(graph));
+
         System.out.println("Advancing simulation to time step " + (timeStep + 1));
         timeStep++;
 
@@ -161,8 +167,8 @@ public class Simulation {
         int randomEdgeIndex = ThreadLocalRandom.current().nextInt(edges.size());
         Edge selectedEdge = edges.get(randomEdgeIndex);
 
-        source.removeArmy(army);
-        selectedEdge.addArmy(army);
+        source.getArmies().remove(army);
+        selectedEdge.getArmies().add(army);
 
         if (isDifferentTeam(selectedEdge.getArmies())) {
             startEdgeBattle(selectedEdge);
@@ -216,8 +222,8 @@ public class Simulation {
                 ? sourceEdge.getFrom()
                 : sourceEdge.getTo();
 
-        sourceEdge.removeArmy(army);
-        targetNode.addArmy(army);
+        sourceEdge.getArmies().remove(army);
+        targetNode.getArmies().add(army);
 
         if (isDifferentTeam(targetNode.getArmies())) {
             startNodeBattle(targetNode);
@@ -248,6 +254,89 @@ public class Simulation {
             }
         }
         return neighboringEdges;
+    }
+
+    /**
+     * Creates a deep copy of the graph structure and army placement.
+     *
+     * @param source the graph to copy
+     * @return a detached copy of the supplied graph
+     */
+    private Graph copyGraph(Graph source) {
+        Graph copy = new Graph();
+        Map<Integer, Node> nodeCopiesById = new HashMap<>();
+
+        for (Node originalNode : source.getNodes()) {
+            Node nodeCopy = new Node(
+                    originalNode.getId(),
+                    originalNode.getName(),
+                    originalNode.getX(),
+                    originalNode.getY());
+            System.out.println("Copying node " + originalNode.getId() + " with armies: " + originalNode.getArmies().size());
+            // Deep copy armies: create new Army instances
+            for (Army originalArmy : originalNode.getArmies()) {
+                nodeCopy.getArmies().add(copyArmy(originalArmy));
+            }
+            copy.getNodes().add(nodeCopy);
+            nodeCopiesById.put(originalNode.getId(), nodeCopy);
+        }
+
+        for (Edge originalEdge : source.getEdges()) {
+            Edge edgeCopy = new Edge(
+                    originalEdge.getId(),
+                    originalEdge.getName(),
+                    nodeCopiesById.get(originalEdge.getFrom().getId()),
+                    nodeCopiesById.get(originalEdge.getTo().getId()));
+            // Deep copy armies: create new Army instances
+            for (Army originalArmy : originalEdge.getArmies()) {
+                edgeCopy.getArmies().add(copyArmy(originalArmy));
+            }
+            copy.getEdges().add(edgeCopy);
+        }
+
+        copy.setNextNodeId(source.getNextNodeId());
+        copy.setNextEdgeId(source.getNextEdgeId());
+
+        if (source.getSelectedNode() != null) {
+            copy.setSelectedNode(nodeCopiesById.get(source.getSelectedNode().getId()));
+        }
+
+        if (source.getSelectedEdge() != null) {
+            for (Edge edge : copy.getEdges()) {
+                if (edge.getId() == source.getSelectedEdge().getId()) {
+                    copy.setSelectedEdge(edge);
+                    break;
+                }
+            }
+        }
+
+        return copy;
+    }
+
+    /**
+     * Creates a deep copy of an Army object.
+     *
+     * @param original the army to copy
+     * @return a new Army with the same faction and a copy of the units list
+     */
+    private Army copyArmy(Army original) {
+        return new Army(original.getFaction(), new ArrayList<>(original.getUnits()));
+    }
+
+    /**
+     * Restores a live graph to the provided snapshot.
+     *
+     * @param target the graph to update
+     * @param snapshot the snapshot to apply
+     */
+    private void restoreGraphState(Graph target, Graph snapshot) {
+        Graph copiedSnapshot = copyGraph(snapshot);
+        target.setNodes(copiedSnapshot.getNodes());
+        target.setEdges(copiedSnapshot.getEdges());
+        target.setNextNodeId(copiedSnapshot.getNextNodeId());
+        target.setNextEdgeId(copiedSnapshot.getNextEdgeId());
+        target.setSelectedNode(copiedSnapshot.getSelectedNode());
+        target.setSelectedEdge(copiedSnapshot.getSelectedEdge());
     }
 
     /**
@@ -295,13 +384,54 @@ public class Simulation {
 
         // TODO: intiate the Event class
     }
-    
+       
     /**
-     * Ends the simulation and resets to the initial graph state.
-     * @param graph The graph to reset.x
+     * Ends the simulation and restores all armies to their initial positions.
+     * @param graph The graph to reset.
+     */
+    public void startSimulation(Graph graph) {
+        initialGraph = copyGraph(graph);
+    }
+
+    /**
+     * Ends the simulation and restores all armies to their initial positions.
+     * @param graph The graph to reset.
      */
     public void endSimulation(Graph graph) {
+        history.clear();
         timeStep = 0;
-        graph = initialGraph; 
+        restoreInitialArmies(graph);
+    }
+
+    /**
+     * Restores all armies to their initial positions based on the initial graph snapshot.
+     *
+     * @param graph the graph whose armies should be restored
+     */
+    private void restoreInitialArmies(Graph graph) {
+        for (Node node : graph.getNodes()) {
+            node.getArmies().clear();
+        }
+        for (Edge edge : graph.getEdges()) {
+            edge.getArmies().clear();
+        }
+      
+        for (Node initialNode : initialGraph.getNodes()) {
+            Node currentNode = graph.getNode(initialNode.getId());
+            if (currentNode != null) {
+                for (Army initialArmy : initialNode.getArmies()) {
+                    currentNode.getArmies().add(copyArmy(initialArmy));
+                }
+            }
+        }
+
+        for (Edge initialEdge : initialGraph.getEdges()) {
+            Edge currentEdge = graph.getEdge(initialEdge.getId());
+            if (currentEdge != null) {
+                for (Army initialArmy : initialEdge.getArmies()) {
+                    currentEdge.getArmies().add(copyArmy(initialArmy));
+                }
+            }
+        }
     }
 }

@@ -43,6 +43,7 @@ public class Edge {
     @Getter
     private ArrayList<Army> armies = new ArrayList<>();
 
+
     /**
      * Creates an edge connecting two nodes.
      *

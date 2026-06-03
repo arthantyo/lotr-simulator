@@ -185,21 +185,26 @@ public class MainFrame extends JFrame {
                 startStop.setText("End Simulation");
                 stepForward.show();
                 stepBack.show();
+                sim.startSimulation(graph);
+                repaint();
             } else {
                 isRunning.set(false);
                 startStop.setText("Start Simulation");
                 stepForward.hide();
                 stepBack.hide();
                 sim.endSimulation(graph);
+                repaint();
             }
         });
 
         stepBack.addActionListener(e -> {
             sim.subtractTime(graph);
+            repaint();
         });
 
         stepForward.addActionListener(e -> {
             sim.advanceTime(graph);
+            repaint();
         });
   
         return new JButton[]{ startStop, stepForward, stepBack };
