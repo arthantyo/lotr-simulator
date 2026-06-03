@@ -45,7 +45,7 @@ public class Graph {
     private int nextEdgeId = 0;
 
     /**
-     * Constructor for Graph. Add more details here.
+     * Creates an empty graph with no nodes or edges.
      */
     public Graph() {
         this.nodes = new ArrayList<Node>();
@@ -71,24 +71,25 @@ public class Graph {
     }
 
     /**
-     * Add a listener for a specific event. Add more details here.
+     * Registers a callback for a specific graph event.
      *
-     * @param event    Name of the event to listen for. 
-     * @param callback Function to call when the event occurs. 
+     * @param event    Name of the event to listen for.
+     * @param callback Function to call when the event occurs.
      */
     public void addListener(GraphEventType event, Consumer<Object> callback) {
         listeners.computeIfAbsent(event, k -> new ArrayList<>()).add(callback);
     }
 
     /**
-     * Remove a listener for a specific event. Add more details here.
+     * Removes a previously registered callback from a specific graph event.
      *
      * @param event    Name of the event for which to remove the listener.
-     * @param callback Function to remove from the list of listeners for the specified event.
+     * @param callback Function to remove from the list of listeners for the
+     *                 specified event.
      */
     public void removeListener(GraphEventType event, Consumer<Object> callback) {
         ArrayList<Consumer<Object>> eventListeners = listeners.get(event);
-        if (eventListeners == null){
+        if (eventListeners == null) {
             return;
         }
 
@@ -100,14 +101,15 @@ public class Graph {
     }
 
     /**
-     * Emit an event to all registered listeners. Add more details here.
+     * Notifies all listeners registered for the given event.
      *
-     * @param event Name of the event to emit. Listeners can subscribe to specific events by name.
-     * @param data  Data associated with the event. 
+     * @param event Name of the event to emit. Listeners can subscribe to specific
+     *              events by name.
+     * @param data  Data associated with the event.
      */
     private void emit(GraphEventType event, Object data) {
         ArrayList<Consumer<Object>> eventListeners = listeners.get(event);
-        if (eventListeners == null){ 
+        if (eventListeners == null) {
             return;
         }
 
@@ -117,7 +119,7 @@ public class Graph {
     }
 
     /**
-     * Add a node to the graph. Add more details here.
+     * Adds a node to the graph and notifies listeners.
      *
      * @param node Node to add.
      */
@@ -127,7 +129,7 @@ public class Graph {
     }
 
     /**
-     * Delete a node from the graph. Add more details here.
+     * Removes a node and all edges connected to it from the graph.
      *
      * @param id ID of the node to delete.
      * @return The deleted node, or null if no node with the given ID was found.
@@ -151,10 +153,11 @@ public class Graph {
     }
 
     /**
-     * Get a node from the graph. Add more details here.
+     * Finds a node by its id.
      *
      * @param id ID of the node to get.
-     * @return The node with the given ID, or null if no node with the given ID was found.
+     * @return The node with the given ID, or null if no node with the given ID was
+     *         found.
      */
     public Node getNode(int id) {
         Node target = this.nodes.stream().filter(node -> node.getId() == id).findFirst().orElse(null);
@@ -163,9 +166,10 @@ public class Graph {
     }
 
     /**
-     * Add an edge to the graph. Add more details here.
+     * Adds an edge to the graph after verifying that both endpoints exist.
      *
-     * @param edge Edge to add. The edge must connect two existing nodes in the graph.
+     * @param edge Edge to add. The edge must connect two existing nodes in the
+     *             graph.
      */
     public void addEdge(Edge edge) {
         // edge must connect two existing nodes
@@ -179,7 +183,7 @@ public class Graph {
     }
 
     /**
-     * Delete an edge from the graph. Add more details here.
+     * Removes an edge from the graph.
      *
      * @param id ID of the edge to delete.
      * @return The deleted edge, or null if no edge with the given ID was found.
@@ -202,10 +206,11 @@ public class Graph {
     }
 
     /**
-     * Get an edge from the graph. Add more details here.
+     * Finds an edge by its id.
      *
      * @param id ID of the edge to get.
-     * @return The edge with the given ID, or null if no edge with the given ID was found.
+     * @return The edge with the given ID, or null if no edge with the given ID was
+     *         found.
      */
     public Edge getEdge(int id) {
         Edge target = this.edges.stream()
@@ -217,7 +222,8 @@ public class Graph {
     }
 
     /**
-     * Selects the given node, deselecting any selected edge, and notifies listeners.
+     * Selects the given node, deselecting any selected edge, and notifies
+     * listeners.
      *
      * @param node the node to select
      */
@@ -228,7 +234,8 @@ public class Graph {
     }
 
     /**
-     * Selects the given edge, deselecting any selected node, and notifies listeners.
+     * Selects the given edge, deselecting any selected node, and notifies
+     * listeners.
      *
      * @param edge the edge to select
      */
@@ -245,5 +252,50 @@ public class Graph {
         this.selectedNode = null;
         this.selectedEdge = null;
         emit(GraphEventType.SELECTION_CHANGED, null);
+    }
+
+    /**
+     * Adds an army to a node and notifies listeners that army data changed.
+     *
+     * @param node node that receives the army
+     * @param army army to add
+     */
+    public void addArmyToNode(Node node, Army army) {
+        node.getArmies().add(army);
+        emit(GraphEventType.ARMIES_CHANGED, node);
+    }
+
+    /**
+     * Removes an army from a node and notifies listeners that army data changed.
+     *
+     * @param node node that contains the army
+     * @param army army to remove
+     */
+    public void removeArmyFromNode(Node node, Army army) {
+        node.getArmies().remove(army);
+        emit(GraphEventType.ARMIES_CHANGED, node);
+
+    }
+
+    /**
+     * Adds an army to an edge and notifies listeners that army data changed.
+     *
+     * @param edge edge that receives the army
+     * @param army army to add
+     */
+    public void addArmyToEdge(Edge edge, Army army) {
+        edge.getArmies().add(army);
+        emit(GraphEventType.ARMIES_CHANGED, edge);
+    }
+
+    /**
+     * Removes an army from an edge and notifies listeners that army data changed.
+     *
+     * @param edge edge that contains the army
+     * @param army army to remove
+     */
+    public void removeArmyFromEdge(Edge edge, Army army) {
+        edge.getArmies().remove(army);
+        emit(GraphEventType.ARMIES_CHANGED, edge);
     }
 }

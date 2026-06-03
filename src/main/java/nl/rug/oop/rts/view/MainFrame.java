@@ -214,7 +214,7 @@ public class MainFrame extends JFrame {
     private void wireOptionsMenu(Graph graph, OptionsPanel optionsPanel) {
         graph.addListener(GraphEventType.SELECTION_CHANGED, data -> {
             if (graph.getSelectedNode() != null) {
-                optionsPanel.showNodeMenu(graph.getSelectedNode());
+                optionsPanel.showNodeMenu(graph, graph.getSelectedNode());
             } else if (graph.getSelectedEdge() != null) {
                 optionsPanel.showEdgeMenu(graph.getSelectedEdge());
             } else {
