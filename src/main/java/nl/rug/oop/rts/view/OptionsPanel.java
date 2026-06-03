@@ -1,10 +1,17 @@
 package nl.rug.oop.rts.view;
 
 import javax.swing.JButton;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 
 import nl.rug.oop.rts.model.Army;
 import nl.rug.oop.rts.model.Edge;
@@ -14,6 +21,7 @@ import nl.rug.oop.rts.model.Node;
 import nl.rug.oop.rts.model.Unit;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -34,6 +42,7 @@ public class OptionsPanel extends JPanel {
      */
     public OptionsPanel() {
         setBackground(Color.GRAY);
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         add(new JLabel("Nothing selected"));
     }
 
@@ -51,7 +60,7 @@ public class OptionsPanel extends JPanel {
      */
     public void showNothingSelected() {
         removeAll();
-        add(new JLabel("Nothing selected"));
+        addCentered(new JLabel("Nothing selected"));
         revalidate();
         repaint();
     }
@@ -64,12 +73,12 @@ public class OptionsPanel extends JPanel {
     public void showEdgeMenu(Edge edge) {
         removeAll();
 
-        add(new JLabel("Edge Name:"));
+        addCentered(new JLabel("Edge Name:"));
         JTextField nameField = new JTextField(edge.getName(), 15);
-        add(nameField);
+        addCentered(nameField);
 
-        add(new JLabel("From: " + edge.getFrom().getName()));
-        add(new JLabel("To: " + edge.getTo().getName()));
+        addCentered(new JLabel("From: " + edge.getFrom().getName()));
+        addCentered(new JLabel("To: " + edge.getTo().getName()));
 
         nameField.addActionListener(e -> {
             edge.setName(nameField.getText());
@@ -130,10 +139,21 @@ public class OptionsPanel extends JPanel {
             String name = getRandomUnitName(faction, random);
             int damage = 5 + random.nextInt(16);
 
-            units.add(new Unit(name, damage, health));
+            units.add(new Unit(name, damage, health, "Basic attack", "This unit has no special history."));
         }
 
         return units;
+    }
+
+    /**
+     * Adds a component centered in the vertical options layout.
+     *
+     * @param component component to add
+     */
+    private void addCentered(JComponent component) {
+        component.setAlignmentX(CENTER_ALIGNMENT);
+        add(component);
+        add(Box.createVerticalStrut(6));
     }
 
     /**
@@ -159,10 +179,11 @@ public class OptionsPanel extends JPanel {
      * @param node node whose name is edited
      */
     private void addNodeNameField(Node node) {
-        add(new JLabel("Node name:"));
+        addCentered(new JLabel("Node name:"));
 
         JTextField nodeNameField = new JTextField(node.getName(), 15);
-        add(nodeNameField);
+        nodeNameField.setMaximumSize(nodeNameField.getPreferredSize());
+        addCentered(nodeNameField);
 
         nodeNameField.addActionListener(e -> {
             node.setName(nodeNameField.getText());
@@ -171,15 +192,82 @@ public class OptionsPanel extends JPanel {
     }
 
     /**
+     * Adds a centered table containing unit details for one army.
+     *
+     * @param army army whose units are displayed
+     */
+    private void addUnitTable(Army army) {
+        String[] columns = { "Name", "Damage", "Health", "Ability", "History" };
+
+        DefaultTableModel model = new DefaultTableModel(columns, 0);
+
+        for (Unit unit : army.getUnits()) {
+            Object[] row = {
+                    unit.getName(),
+                    unit.getDamage(),
+                    unit.getHealth(),
+                    unit.getAbility(),
+                    unit.getHistory()
+            };
+
+            model.addRow(row);
+        }
+
+        JTable table = new JTable(model);
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        table.setRowHeight(24);
+        centerTable(table);
+        setUnitTableColumnWidths(table);
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setPreferredSize(new Dimension(360, 180));
+        scrollPane.setMaximumSize(new Dimension(520, 180));
+
+        addCentered(scrollPane);
+    }
+
+    /**
+     * Centers all cells and column headers in the table.
+     *
+     * @param table table to align
+     */
+    private void centerTable(JTable table) {
+        DefaultTableCellRenderer centered = new DefaultTableCellRenderer();
+        centered.setHorizontalAlignment(JLabel.CENTER);
+
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(centered);
+        }
+
+        DefaultTableCellRenderer header = (DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer();
+        header.setHorizontalAlignment(JLabel.CENTER);
+    }
+
+    /**
+     * Sets readable widths for the unit detail table columns.
+     *
+     * @param table table whose columns are resized
+     */
+    private void setUnitTableColumnWidths(JTable table) {
+        int[] widths = { 130, 70, 70, 130, 220 };
+
+        for (int i = 0; i < widths.length; i++) {
+            table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+        }
+    }
+
+    /**
      * Adds labels describing the armies currently on the node.
      *
      * @param node node whose armies are displayed
      */
     private void addArmyDetails(Node node) {
-        add(new JLabel("Armies: " + node.getArmies().size()));
+        addCentered(new JLabel("Armies: " + node.getArmies().size()));
 
         for (Army army : node.getArmies()) {
-            add(new JLabel(army.getTeam() + " - " + army.getUnits().size() + " units"));
+            addCentered(new JLabel(army.getFaction() + " (" + army.getTeam() + ")"));
+            addCentered(new JLabel("Units: " + army.getUnits().size()));
+            addUnitTable(army);
         }
     }
 
@@ -187,16 +275,16 @@ public class OptionsPanel extends JPanel {
      * Adds army management buttons to the node menu.
      *
      * @param graph graph model used to update armies
-     * @param node node whose armies are managed
+     * @param node  node whose armies are managed
      */
     private void addArmyButtons(Graph graph, Node node) {
         JButton addArmyButton = new JButton("Add Army");
-        add(addArmyButton);
+        addCentered(addArmyButton);
         addArmyButton.addActionListener(e -> addArmy(graph, node));
 
         JButton removeArmyButton = new JButton("Remove Army");
         removeArmyButton.setEnabled(!node.getArmies().isEmpty());
-        add(removeArmyButton);
+        addCentered(removeArmyButton);
         removeArmyButton.addActionListener(e -> removeLastArmy(graph, node));
     }
 
@@ -204,7 +292,7 @@ public class OptionsPanel extends JPanel {
      * Prompts for a faction and adds a new army to the node.
      *
      * @param graph graph model used to add the army
-     * @param node node that receives the army
+     * @param node  node that receives the army
      */
     private void addArmy(Graph graph, Node node) {
         Faction faction = chooseFaction();
@@ -237,7 +325,7 @@ public class OptionsPanel extends JPanel {
      * Removes the most recently added army from the node.
      *
      * @param graph graph model used to remove the army
-     * @param node node whose army is removed
+     * @param node  node whose army is removed
      */
     private void removeLastArmy(Graph graph, Node node) {
         if (node.getArmies().isEmpty()) {

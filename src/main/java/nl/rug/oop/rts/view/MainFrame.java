@@ -3,7 +3,10 @@ package nl.rug.oop.rts.view;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+
+import java.awt.Dimension;
 
 import nl.rug.oop.rts.model.Edge;
 import nl.rug.oop.rts.model.Graph;
@@ -237,11 +240,14 @@ public class MainFrame extends JFrame {
      *         the right
      */
     private JSplitPane createSplitPane(GraphPanel graphPanel, OptionsPanel optionsPanel) {
+        JScrollPane optionsScrollPane = new JScrollPane(optionsPanel);
+        optionsScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        optionsScrollPane.setPreferredSize(new Dimension(390, getHeight()));
 
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, optionsPanel, graphPanel);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, optionsScrollPane, graphPanel);
 
         // Give the graph panel the majority of the horizontal space
-        splitPane.setDividerLocation(220);
+        splitPane.setDividerLocation(390);
 
         return splitPane;
     }
