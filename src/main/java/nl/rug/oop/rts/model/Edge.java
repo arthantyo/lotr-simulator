@@ -1,5 +1,7 @@
 package nl.rug.oop.rts.model;
 
+import java.util.ArrayList;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,37 +11,43 @@ import lombok.Setter;
  */
 public class Edge {
     /**
-     * ID of the edge. Add more details here.
+     * Unique identifier of the edge.
      */
     @Getter
     private final int id;
 
     /**
-     * Name of the edge. Add more details here.
+     * Editable display name of the edge.
      */
     @Getter
     @Setter
     private  String name;
 
     /**
-     * Node from which the edge starts. Add more details here.
+     * First node connected by this edge.
      */
     @Getter
     @Setter
     private Node from;
 
     /**
-     * Node to which the edge points. Add more details here.
+     * Second node connected by this edge.
      */
     @Getter
     @Setter
     private Node to;
 
     /**
-     * Constructor for Edge. Add more details here.
+     * Armies currently located on this edge.
+     */
+    @Getter
+    private ArrayList<Army> armies = new ArrayList<>();
+
+    /**
+     * Creates an edge connecting two nodes.
      *
      * @param id   ID of the edge. Must be unique within the graph.
-     * @param name Name of the edge. Add more details here.
+     * @param name Name of the edge.
      * @param from Node from which the edge starts. Must be a node that exists in the graph.
      * @param to   Node to which the edge points. Must be a node that exists in the graph.
      */
