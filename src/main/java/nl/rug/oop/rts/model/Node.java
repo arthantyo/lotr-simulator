@@ -12,7 +12,7 @@ import java.util.ArrayList;
  */
 @Getter
 @Setter
-public class Node implements Nameable {
+public class Node implements Nameable,BattleLocation {
     /**
      * Unique identifier of the node.
      */
