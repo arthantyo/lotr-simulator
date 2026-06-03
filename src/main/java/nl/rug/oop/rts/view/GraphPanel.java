@@ -10,10 +10,12 @@ import java.awt.Image;
 import javax.swing.JPanel;
 
 import lombok.Getter;
+import nl.rug.oop.rts.model.Army;
 import nl.rug.oop.rts.model.Edge;
 import nl.rug.oop.rts.model.Graph;
 import nl.rug.oop.rts.model.GraphEventType;
 import nl.rug.oop.rts.model.Node;
+import nl.rug.oop.rts.model.Team;
 import nl.rug.oop.rts.util.TextureLoader;
 import java.awt.BasicStroke;
 
@@ -61,13 +63,12 @@ public class GraphPanel extends JPanel {
      * Stroke used to draw edges.
      */
     private final BasicStroke defaultStroke = new BasicStroke(
-        2.0f,                   
-        BasicStroke.CAP_ROUND,  
-        BasicStroke.JOIN_ROUND,  
-        0,
-        new float[]{10.0f, 6.0f},
-        0
-    );
+            2.0f,
+            BasicStroke.CAP_ROUND,
+            BasicStroke.JOIN_ROUND,
+            0,
+            new float[] { 10.0f, 6.0f },
+            0);
 
     /**
      * Creates the graph panel with a temporary background color and subscribes
@@ -79,18 +80,20 @@ public class GraphPanel extends JPanel {
         this.graph = graph;
 
         backgroundImage = TextureLoader.getInstance()
-                        .getTexture("mapTexture", 800, 600);
+                .getTexture("mapTexture", 800, 600);
 
         graph.addListener(GraphEventType.NODE_ADDED, data -> repaint());
         graph.addListener(GraphEventType.NODE_DELETED, data -> repaint());
         graph.addListener(GraphEventType.EDGE_ADDED, data -> repaint());
         graph.addListener(GraphEventType.EDGE_DELETED, data -> repaint());
         graph.addListener(GraphEventType.SELECTION_CHANGED, data -> repaint());
+        graph.addListener(GraphEventType.ARMIES_CHANGED, data -> repaint());
 
         this.mouseListener = new GraphMouseListener(graph, this);
         addMouseListener(mouseListener);
         addMouseMotionListener(mouseListener);
         addMouseWheelListener(mouseListener);
+
     }
 
     /**
@@ -102,7 +105,8 @@ public class GraphPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        // copies the graphics context so we can apply transformations without affecting the original
+        // copies the graphics context so we can apply transformations without affecting
+        // the original
         Graphics2D g2 = (Graphics2D) g.create();
 
         try {
@@ -142,6 +146,47 @@ public class GraphPanel extends JPanel {
                 g2.setStroke(defaultStroke);
             }
             g.drawLine(a.getX(), a.getY(), b.getX(), b.getY());
+
+            if (!edge.getArmies().isEmpty()) {
+                int midX = (a.getX() + b.getX()) / 2;
+                int midY = (a.getY() + b.getY()) / 2;
+                g.setColor(Color.YELLOW);
+                g.fillOval(midX - 8, midY - 8, 16, 16);
+
+                g.setColor(Color.BLACK);
+                g.drawString(String.valueOf(edge.getArmies().size()), midX - 4, midY + 4);
+            }
+        }
+    }
+
+    private void drawArmyMarkers(Graphics g, Node node) {
+        int goodCount = 0;
+        int evilCount = 0;
+        for (Army army : node.getArmies()) {
+            if (army.getTeam() == Team.GOOD) {
+                goodCount++;
+            } else if (army.getTeam() == Team.EVIL) {
+                evilCount++;
+            }
+        }
+
+        int markerSize = 20;
+        int markerX = node.getX() - markerSize / 2 - 4;
+        int goodY = node.getY() - NODE_SIZE / 2 - 4;
+        int evilY = node.getY() + NODE_SIZE / 2 - markerSize + 4;
+
+        if (goodCount > 0) {
+            g.setColor(Color.GREEN);
+            g.fillOval(markerX, goodY, markerSize, markerSize);
+            g.setColor(Color.BLACK);
+            g.drawString(String.valueOf(goodCount), markerX + 7, goodY + 15);
+        }
+
+        if (evilCount > 0) {
+            g.setColor(Color.RED);
+            g.fillOval(markerX, evilY, markerSize, markerSize);
+            g.setColor(Color.BLACK);
+            g.drawString(String.valueOf(evilCount), markerX + 7, evilY + 15);
         }
     }
 
@@ -160,7 +205,7 @@ public class GraphPanel extends JPanel {
      * Draws a single node, including its selection highlight,
      * image, and name label.
      *
-     * @param g Graphics context used for rendering.
+     * @param g    Graphics context used for rendering.
      * @param node The node to draw.
      */
     private void drawNode(Graphics g, Node node) {
@@ -173,6 +218,7 @@ public class GraphPanel extends JPanel {
 
         drawNodeImage(g, node, x, y);
         drawNodeLabel(g, node);
+        drawArmyMarkers(g, node);
     }
 
     /**
@@ -187,22 +233,21 @@ public class GraphPanel extends JPanel {
 
         g.setColor(Color.RED);
         g.fillRoundRect(
-            x - padding,
-            y - padding - 6,
-            NODE_SIZE + padding * 2,
-            NODE_SIZE + padding * 3,
-            12,
-            12
-        );
+                x - padding,
+                y - padding - 6,
+                NODE_SIZE + padding * 2,
+                NODE_SIZE + padding * 3,
+                12,
+                12);
     }
 
     /**
      * Draws the node texture centered on the node's position.
      *
-     * @param g Graphics context used for rendering.
+     * @param g    Graphics context used for rendering.
      * @param node The node whose texture is drawn.
-     * @param x Top-left x-coordinate of the node.
-     * @param y Top-left y-coordinate of the node.
+     * @param x    Top-left x-coordinate of the node.
+     * @param y    Top-left y-coordinate of the node.
      */
     private void drawNodeImage(Graphics g, Node node, int x, int y) {
         int imageSize = NODE_SIZE * 2;
@@ -211,19 +256,18 @@ public class GraphPanel extends JPanel {
                 .getTexture("node2", x, y);
 
         g.drawImage(
-            nodeImage,
-            node.getX() - imageSize / 2,
-            node.getY() - imageSize / 2,
-            imageSize,
-            imageSize,
-            this
-        );
+                nodeImage,
+                node.getX() - imageSize / 2,
+                node.getY() - imageSize / 2,
+                imageSize,
+                imageSize,
+                this);
     }
 
     /**
      * Draws the node's name centered on the node.
      *
-     * @param g Graphics context used for rendering.
+     * @param g    Graphics context used for rendering.
      * @param node The node whose label is drawn.
      */
     private void drawNodeLabel(Graphics g, Node node) {
@@ -236,14 +280,14 @@ public class GraphPanel extends JPanel {
         int textWidth = fm.stringWidth(name);
 
         g.drawString(
-            name,
-            node.getX() - textWidth / 2,
-            node.getY() + fm.getAscent() / 2
-        );
+                name,
+                node.getX() - textWidth / 2,
+                node.getY() + fm.getAscent() / 2);
     }
 
     /**
      * Returns the background width in world coordinates.
+     * 
      * @return world width
      */
     public int getWorldWidth() {
@@ -252,6 +296,7 @@ public class GraphPanel extends JPanel {
 
     /**
      * Returns the background height in world coordinates.
+     * 
      * @return world height
      */
     public int getWorldHeight() {
@@ -260,6 +305,7 @@ public class GraphPanel extends JPanel {
 
     /**
      * Moves the visible map by the supplied delta.
+     * 
      * @param deltaX horizontal delta in pixels
      * @param deltaY vertical delta in pixels
      */
@@ -272,6 +318,7 @@ public class GraphPanel extends JPanel {
 
     /**
      * Converts a screen X coordinate to a world X coordinate.
+     * 
      * @param screenX the x coordinate in panel space
      * @return the x coordinate in graph space
      */
@@ -281,6 +328,7 @@ public class GraphPanel extends JPanel {
 
     /**
      * Converts a screen Y coordinate to a world Y coordinate.
+     * 
      * @param screenY the y coordinate in panel space
      * @return the y coordinate in graph space
      */
@@ -289,8 +337,10 @@ public class GraphPanel extends JPanel {
     }
 
     /**
-     * Zooms the view by the given factor while keeping the supplied screen point anchored.
-     * @param factor zoom multiplier
+     * Zooms the view by the given factor while keeping the supplied screen point
+     * anchored.
+     * 
+     * @param factor  zoom multiplier
      * @param anchorX screen x coordinate to keep stable
      * @param anchorY screen y coordinate to keep stable
      */
@@ -299,7 +349,8 @@ public class GraphPanel extends JPanel {
         double worldX = toWorldX(anchorX);
         double worldY = toWorldY(anchorY);
 
-        // System.out.println("World coordinates before zoom: (" + worldX + ", " + toWorldY(anchorY) + ")");
+        // System.out.println("World coordinates before zoom: (" + worldX + ", " +
+        // toWorldY(anchorY) + ")");
 
         zoom = newZoom;
         panX = (int) Math.round(anchorX - worldX * zoom);
@@ -310,6 +361,7 @@ public class GraphPanel extends JPanel {
 
     /**
      * Returns the current zoom level.
+     * 
      * @return current zoom factor
      */
     public double getZoom() {
@@ -318,6 +370,7 @@ public class GraphPanel extends JPanel {
 
     /**
      * Returns the current horizontal pan offset.
+     * 
      * @return horizontal offset
      */
     public int getPanX() {
@@ -326,6 +379,7 @@ public class GraphPanel extends JPanel {
 
     /**
      * Returns the current vertical pan offset.
+     * 
      * @return vertical offset
      */
     public int getPanY() {

@@ -37,6 +37,7 @@ public class Edge {
     @Setter
     private Node to;
 
+    @Getter
     private ArrayList<Army> armies = new ArrayList<>();
 
     /**

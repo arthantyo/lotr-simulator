@@ -13,7 +13,6 @@ import lombok.AllArgsConstructor;
  */
 @Getter
 @Setter
-@AllArgsConstructor
 public class Node {
     /**
      * ID of the node. Add more details here.
@@ -36,4 +35,12 @@ public class Node {
     private int y;
 
     private ArrayList<Army> armies = new ArrayList<>();
+
+    public Node(int id, String name, int x, int y) {
+        this.id = id;
+        this.name = name;
+        this.x = x;
+        this.y = y;
+        this.armies = new ArrayList<>();
+    }
 }

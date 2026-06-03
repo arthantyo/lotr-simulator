@@ -1,7 +1,7 @@
 package nl.rug.oop.rts.model;
 
 /**
- * Enum representing the different types of events that can occur in the graph. 
+ * Enum representing the different types of events that can occur in the graph.
  */
 public enum GraphEventType {
     NODE_ADDED,
@@ -9,4 +9,5 @@ public enum GraphEventType {
     EDGE_ADDED,
     EDGE_DELETED,
     SELECTION_CHANGED,
+    ARMIES_CHANGED;
 }
