@@ -10,7 +10,7 @@ import lombok.AllArgsConstructor;
 @Getter
 @Setter
 @AllArgsConstructor
-public class Node {
+public class Node implements Nameable {
     /**
      * ID of the node. Add more details here.
      */

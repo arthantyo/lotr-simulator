@@ -7,7 +7,7 @@ import lombok.Setter;
  * Represents a directed connection between two {@link Node} instances in the graph.
  * Contains an immutable id and name and mutable endpoints (`from` and `to`).
  */
-public class Edge {
+public class Edge implements Nameable {
     /**
      * ID of the edge. Add more details here.
      */
