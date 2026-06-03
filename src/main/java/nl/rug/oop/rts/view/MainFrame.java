@@ -9,6 +9,8 @@ import nl.rug.oop.rts.model.Edge;
 import nl.rug.oop.rts.model.Graph;
 import nl.rug.oop.rts.model.GraphEventType;
 import nl.rug.oop.rts.model.Node;
+import nl.rug.oop.rts.controller.*;
+import nl.rug.oop.rts.controller.command.*;
 
 /**
  * Main frame of the application. Serves as the top-level window,
@@ -24,14 +26,14 @@ public class MainFrame extends JFrame {
      */
     public MainFrame() {
         configureWindow();
-
+        CommandManager commandManager = new CommandManager();
         Graph graph = new Graph();
-        GraphPanel graphPanel = new GraphPanel(graph);
-        OptionsPanel optionsPanel = new OptionsPanel();
+        GraphPanel graphPanel = new GraphPanel(graph, commandManager);
+        OptionsPanel optionsPanel = new OptionsPanel(commandManager);
         optionsPanel.setOnNameChanged(graphPanel::repaint);
 
         wireOptionsMenu(graph, optionsPanel);
-        setJMenuBar(createMenuBar(graph, graphPanel));
+        setJMenuBar(createMenuBar(graph, graphPanel, commandManager));
         add(createSplitPane(graphPanel, optionsPanel));
     }
 
@@ -50,16 +52,23 @@ public class MainFrame extends JFrame {
      * selection-dependent buttons to the model so they enable/disable
      * according to the current selection.
      *
-     * @param graph         the graph model the buttons operate on
-     * @param graphPanel    the panel displaying the graph
+     * @param graph      the graph model the buttons operate on
+     * @param graphPanel the panel displaying the graph
+     * @param commandManager manager that records reversible actions for undo/redo
      * @return the configured menu bar
      */
-    private JMenuBar createMenuBar(Graph graph, GraphPanel graphPanel) {
+    private JMenuBar createMenuBar(Graph graph, GraphPanel graphPanel, CommandManager commandManager) {
         GraphMouseListener mouseListener = graphPanel.getMouseListener();
-        JButton addNode = createAddNodeButton(graph, graphPanel);
+        JButton addNode = createAddNodeButton(graph, graphPanel, commandManager);
         JButton addEdge = createAddEdgeButton(graph, mouseListener);
-        JButton removeNode = createRemoveNodeButton(graph);
-        JButton removeEdge = createRemoveEdgeButton(graph);
+        JButton removeNode = createRemoveNodeButton(graph, commandManager);
+        JButton removeEdge = createRemoveEdgeButton(graph, commandManager);
+        JButton undo = new JButton("Undo");
+        JButton redo = new JButton("Redo");
+        undo.setEnabled(false);
+        redo.setEnabled(false);
+        undo.addActionListener(e -> commandManager.undo());
+        redo.addActionListener(e -> commandManager.redo());
 
         graph.addListener(GraphEventType.SELECTION_CHANGED, data -> {
             boolean nodeSelected = graph.getSelectedNode() != null;
@@ -69,22 +78,32 @@ public class MainFrame extends JFrame {
             removeEdge.setEnabled(edgeSelected);
         });
 
+        commandManager.setOnChange(() -> {
+            undo.setEnabled(commandManager.canUndo());
+            redo.setEnabled(commandManager.canRedo());
+            graphPanel.repaint();
+        });
+
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(addNode);
         menuBar.add(addEdge);
         menuBar.add(removeNode);
         menuBar.add(removeEdge);
+        menuBar.add(undo);
+        menuBar.add(redo);
         return menuBar;
     }
 
     /**
      * Creates the button that adds a new node to the graph.
      *
-     * @param graph the graph model the button operates on
-     * @param graphPanel the panel used to determine the initial position of the new node
+     * @param graph      the graph model the button operates on
+     * @param graphPanel the panel used to determine the initial position of the new
+     *                   node
+     * @param commandManager manager that records reversible actions for undo/redo
      * @return the configured button
      */
-    private JButton createAddNodeButton(Graph graph, GraphPanel graphPanel) {
+    private JButton createAddNodeButton(Graph graph, GraphPanel graphPanel, CommandManager commandManager) {
         JButton button = new JButton("Add Node");
         button.addActionListener(e -> {
             int id = graph.nextNodeId();
@@ -95,7 +114,7 @@ public class MainFrame extends JFrame {
             int worldX = (int) Math.round(graphPanel.toWorldX(centerX));
             int worldY = (int) Math.round(graphPanel.toWorldY(centerY));
 
-            graph.addNode(new Node(id, "Node " + id, worldX, worldY));
+            commandManager.executeCommand(new AddNodeCommand(graph, new Node(id, "Node " + id, worldX, worldY)));
         });
         return button;
     }
@@ -123,15 +142,16 @@ public class MainFrame extends JFrame {
      * Creates the button that removes the selected node.
      *
      * @param graph the graph model the button operates on
+     * @param commandManager manager that records reversible actions for undo/redo
      * @return the configured button
      */
-    private JButton createRemoveNodeButton(Graph graph) {
+    private JButton createRemoveNodeButton(Graph graph, CommandManager commandManager) {
         JButton button = new JButton("Remove Node");
         button.setEnabled(false);
         button.addActionListener(e -> {
             Node sel = graph.getSelectedNode();
             if (sel != null) {
-                graph.deleteNode(sel.getId());
+                commandManager.executeCommand(new DeleteNodeCommand(graph, sel));
             }
         });
         return button;
@@ -141,15 +161,16 @@ public class MainFrame extends JFrame {
      * Creates the button that removes the selected edge.
      *
      * @param graph the graph model the button operates on
+     * @param commandManager manager that records reversible actions for undo/redo
      * @return the configured button
      */
-    private JButton createRemoveEdgeButton(Graph graph) {
+    private JButton createRemoveEdgeButton(Graph graph, CommandManager commandManager) {
         JButton button = new JButton("Remove Edge");
         button.setEnabled(false);
         button.addActionListener(e -> {
             Edge sel = graph.getSelectedEdge();
             if (sel != null) {
-                graph.deleteEdge(sel.getId());
+                commandManager.executeCommand(new DeleteEdgeCommand(graph, sel));
             }
         });
         return button;

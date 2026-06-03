@@ -6,6 +6,8 @@ import javax.swing.JTextField;
 
 import nl.rug.oop.rts.model.Edge;
 import nl.rug.oop.rts.model.Node;
+import nl.rug.oop.rts.controller.*;
+import nl.rug.oop.rts.controller.command.*;
 
 import java.awt.Color;
 
@@ -17,6 +19,10 @@ import java.awt.Color;
 public class OptionsPanel extends JPanel {
 
     /**
+     * Manager used to record name changes for undo/redo.
+     */
+    private CommandManager commandManager;
+    /**
      * Callback to invoke when an edge's name is changed, so the graph panel can repaint.
      */
     private Runnable onNameChanged = () -> {};
@@ -24,8 +30,11 @@ public class OptionsPanel extends JPanel {
     /**
      * Creates the options panel with a grey background and a placeholder
      * label shown when no graph element is selected.
+     *
+     * @param commandManager manager used to record name changes for undo/redo
      */
-    public OptionsPanel() {
+    public OptionsPanel(CommandManager commandManager) {
+        this.commandManager = commandManager;
         setBackground(Color.GRAY);
         add(new JLabel("Nothing selected"));
     }
@@ -71,7 +80,7 @@ public class OptionsPanel extends JPanel {
 
         // Commit the edited name to the model when the user presses Enter
         nameField.addActionListener(e -> {
-            edge.setName(nameField.getText());
+            commandManager.executeCommand(new RenameCommand(edge, nameField.getText()));
             onNameChanged.run();
         });
 
@@ -96,7 +105,7 @@ public class OptionsPanel extends JPanel {
 
         // Commit the edited name to the model when the user presses Enter
         nodeNameField.addActionListener(e -> {
-            node.setName(nodeNameField.getText());
+            commandManager.executeCommand(new RenameCommand(node, nodeNameField.getText()));
             onNameChanged.run();
         });
         revalidate();

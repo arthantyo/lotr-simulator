@@ -6,6 +6,8 @@ import java.awt.event.MouseWheelEvent;
 import java.util.List;
 
 import nl.rug.oop.rts.model.*;
+import nl.rug.oop.rts.controller.command.*;
+import nl.rug.oop.rts.controller.*;
 
 /**
  * Mouse listener for handling mouse events on the graph panel.
@@ -42,6 +44,25 @@ public class GraphMouseListener extends MouseAdapter {
     private Node edgeStartNode = null;
 
     /**
+     * Node currently being dragged, or null if none.
+     */
+    private Node draggedNode = null;
+
+    /**
+     * X position (world space) of the dragged node at the start of the drag.
+     */
+    private int dragStartX;
+
+    /**
+     * Y position (world space) of the dragged node at the start of the drag.
+     */
+    private int dragStartY;
+
+    /**
+     * Manager used to record reversible actions for undo/redo.
+     */
+    private final CommandManager commandManager;
+    /**
     * Radius for detecting clicks on nodes. Add more details here.
     * @param graph Graph model that this listener will interact with. Must not be null.
     * @param graphPanel Graph panel that will be repainted and panned.
@@ -52,10 +73,12 @@ public class GraphMouseListener extends MouseAdapter {
      * Constructor for the graph mouse listener.
      * @param graph Graph model that this listener will interact with. Must not be null.
      * @param graphPanel Graph panel that will be repainted and panned.
+     * @param commandManager Manager that records reversible actions for undo/redo.
      */
-    public GraphMouseListener(Graph graph, GraphPanel graphPanel) {
+    public GraphMouseListener(Graph graph, GraphPanel graphPanel, CommandManager commandManager) {
         this.graph = graph;
         this.graphPanel = graphPanel;
+        this.commandManager = commandManager;
     }
 
     /**
@@ -69,6 +92,7 @@ public class GraphMouseListener extends MouseAdapter {
         lastMouseX = x;
         lastMouseY = y;
         panning = false;
+        draggedNode = null;
 
         double worldX = graphPanel.toWorldX(x);
         double worldY = graphPanel.toWorldY(y);
@@ -79,12 +103,15 @@ public class GraphMouseListener extends MouseAdapter {
                 int id = graph.nextEdgeId();
                 String name = "Edge " + id;
                 Edge newEdge = new Edge(id, name, edgeStartNode, clickedNode);
-                graph.addEdge(newEdge);
+                commandManager.executeCommand(new AddEdgeCommand(graph, newEdge));
                 edgeStartNode = null;
                 // Select the new edge (not a node) so a stray drag does not move the start node.
                 graph.setSelectedEdge(newEdge);
             } else {
                 graph.setSelectedNode(clickedNode);
+                draggedNode = clickedNode;
+                dragStartX = clickedNode.getX();
+                dragStartY = clickedNode.getY();
             }
             return;
         }
@@ -235,6 +262,12 @@ public class GraphMouseListener extends MouseAdapter {
     @Override
     public void mouseReleased(MouseEvent e) {
         panning = false;
+        if (draggedNode != null
+                && (draggedNode.getX() != dragStartX || draggedNode.getY() != dragStartY)) {
+            commandManager.executeCommand(new MoveNodeCommand(
+                    draggedNode, dragStartX, dragStartY, draggedNode.getX(), draggedNode.getY()));
+        }
+        draggedNode = null;
         graphPanel.repaint();
     }
     
