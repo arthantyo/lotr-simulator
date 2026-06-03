@@ -9,6 +9,7 @@ import nl.rug.oop.rts.model.Edge;
 import nl.rug.oop.rts.model.Graph;
 import nl.rug.oop.rts.model.GraphEventType;
 import nl.rug.oop.rts.model.Node;
+import nl.rug.oop.rts.model.Simulation;
 
 /**
  * Main frame of the application. Serves as the top-level window,
@@ -28,6 +29,7 @@ public class MainFrame extends JFrame {
         Graph graph = new Graph();
         GraphPanel graphPanel = new GraphPanel(graph);
         OptionsPanel optionsPanel = new OptionsPanel();
+
         optionsPanel.setOnNameChanged(graphPanel::repaint);
 
         wireOptionsMenu(graph, optionsPanel);
@@ -60,6 +62,10 @@ public class MainFrame extends JFrame {
         JButton addEdge = createAddEdgeButton(graph, mouseListener);
         JButton removeNode = createRemoveNodeButton(graph);
         JButton removeEdge = createRemoveEdgeButton(graph);
+        JButton[] simButtons = createSimulationButtons(graph);
+        JButton startStop = simButtons[0];
+        JButton stepForward = simButtons[1];
+        JButton stepBack = simButtons[2];
 
         graph.addListener(GraphEventType.SELECTION_CHANGED, data -> {
             boolean nodeSelected = graph.getSelectedNode() != null;
@@ -74,6 +80,9 @@ public class MainFrame extends JFrame {
         menuBar.add(addEdge);
         menuBar.add(removeNode);
         menuBar.add(removeEdge);
+        menuBar.add(stepBack);
+        menuBar.add(startStop);
+        menuBar.add(stepForward);
         return menuBar;
     }
 
@@ -154,6 +163,46 @@ public class MainFrame extends JFrame {
         });
         return button;
     }
+
+
+    private JButton[] createSimulationButtons(Graph graph) {
+        JButton startStop = new JButton("Start Simulation");
+        JButton stepForward = new JButton("▶");
+        JButton stepBack = new JButton("◀");
+        stepForward.hide();
+        stepBack.hide();
+
+        Simulation sim = new Simulation(graph);
+        var isRunning = new java.util.concurrent.atomic.AtomicBoolean(false);
+
+
+        startStop.addActionListener(e -> {
+            if (!isRunning.get()) {
+                isRunning.set(true);
+                startStop.setText("End Simulation");
+                stepForward.show();
+                stepBack.show();
+            } else {
+                isRunning.set(false);
+                startStop.setText("Start Simulation");
+                stepForward.hide();
+                stepBack.hide();
+                sim.endSimulation(graph);
+            }
+        });
+
+        stepBack.addActionListener(e -> {
+            sim.subtractTime(graph);
+        });
+
+        stepForward.addActionListener(e -> {
+            sim.advanceTime(graph);
+        });
+
+  
+        return new JButton[]{ startStop, stepForward, stepBack };
+    }
+
 
     /**
      * Subscribes the options panel to the model so it shows the details of the
