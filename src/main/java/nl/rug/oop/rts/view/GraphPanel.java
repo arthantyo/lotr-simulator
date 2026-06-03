@@ -14,7 +14,6 @@ import nl.rug.oop.rts.model.Edge;
 import nl.rug.oop.rts.model.Graph;
 import nl.rug.oop.rts.model.GraphEventType;
 import nl.rug.oop.rts.model.Node;
-import nl.rug.oop.rts.model.Team;
 import nl.rug.oop.rts.util.TextureLoader;
 import nl.rug.oop.rts.controller.*;
 
@@ -135,27 +134,56 @@ public class GraphPanel extends JPanel {
      */
     private void drawEdges(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
+
+        final int markerSize = 50;
+        final int overlap = 20;
+        final int step = markerSize - overlap;
+
         for (Edge edge : graph.getEdges()) {
             Node a = edge.getFrom();
             Node b = edge.getTo();
-            if (edge == graph.getSelectedEdge()) {
-                g2.setColor(Color.RED);
-                g2.setStroke(defaultStroke);
-            } else {
-                g2.setColor(Color.BLUE);
-                g2.setStroke(defaultStroke);
-            }
-            g.drawLine(a.getX(), a.getY(), b.getX(), b.getY());
 
-            if (!edge.getArmies().isEmpty()) {
-                int midX = (a.getX() + b.getX()) / 2;
-                int midY = (a.getY() + b.getY()) / 2;
-                g.setColor(Color.YELLOW);
-                g.fillOval(midX - 8, midY - 8, 16, 16);
+            g2.setColor(edge == graph.getSelectedEdge() ? Color.RED : Color.BLUE);
+            g2.setStroke(defaultStroke);
 
-                g.setColor(Color.BLACK);
-                g.drawString(String.valueOf(edge.getArmies().size()), midX - 4, midY + 4);
-            }
+            g2.drawLine(a.getX(), a.getY(), b.getX(), b.getY());
+
+            drawEdgeArmies(g2, edge, a, b, markerSize, step);
+        }
+    }
+
+    /**
+     * Draws army markers on the given edge.
+     * @param g2 Graphics context used to draw the army markers.
+     * @param edge The edge on which the armies are located.
+     * @param a One endpoint of the edge.
+     * @param b The other endpoint of the edge.
+     * @param markerSize Size of the army marker in pixels.
+     * @param step Horizontal spacing between multiple army markers on the same edge.
+     */
+    private void drawEdgeArmies(Graphics2D g2, Edge edge, Node a, Node b, int markerSize, int step) {
+        int offset = 0;
+        int midX = (a.getX() + b.getX()) / 2;
+        int midY = (a.getY() + b.getY()) / 2;
+
+        for (Army army : edge.getArmies()) {
+            int markerX = midX + offset;
+
+            String factionName = army.getFaction().name();
+            String textureKey = "faction" +
+                    factionName.substring(0, 1).toUpperCase() +
+                    factionName.substring(1).toLowerCase();
+
+            Image nodeImage = TextureLoader.getInstance().getTexture(textureKey, markerX, midY);
+
+            g2.setColor(Color.GREEN);
+            g2.fillRoundRect(markerX, midY, markerSize, markerSize, 5, 5);
+            g2.drawImage(nodeImage, markerX, midY, markerSize, markerSize, null);
+
+            g2.setColor(Color.BLACK);
+            g2.drawString(String.valueOf(army.getUnits().size()), markerX + markerSize / 2 - 10, midY - 4);
+
+            offset += step;
         }
     }
 
@@ -189,8 +217,7 @@ public class GraphPanel extends JPanel {
                     factionName.substring(0, 1).toUpperCase() +
                     factionName.substring(1).toLowerCase();
 
-            Image nodeImage = TextureLoader.getInstance()
-            .getTexture(textureKey, markerX, y);
+            Image nodeImage = TextureLoader.getInstance().getTexture(textureKey, markerX, y);
 
             g.setColor(Color.GREEN);
             g.fillRoundRect(markerX, y, markerSize, markerSize, 5, 5);

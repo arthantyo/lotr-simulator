@@ -262,7 +262,6 @@ public class MainFrame extends JFrame {
         return new JButton[]{ startStop, stepForward, stepBack };
     }
 
-
     /**
      * Subscribes the options panel to the model so it shows the details of the
      *  selected node or edge.
