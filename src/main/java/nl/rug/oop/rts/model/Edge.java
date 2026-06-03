@@ -1,5 +1,7 @@
 package nl.rug.oop.rts.model;
 
+import java.util.ArrayList;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -34,6 +36,8 @@ public class Edge {
     @Getter
     @Setter
     private Node to;
+
+    private ArrayList<Army> armies = new ArrayList<>();
 
     /**
      * Constructor for Edge. Add more details here.

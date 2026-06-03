@@ -2,10 +2,14 @@ package nl.rug.oop.rts.model;
 
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.ArrayList;
+
 import lombok.AllArgsConstructor;
 
 /**
- * Represents a node (vertex) in the graph with an immutable id and an editable name.
+ * Represents a node (vertex) in the graph with an immutable id and an editable
+ * name.
  */
 @Getter
 @Setter
@@ -30,4 +34,6 @@ public class Node {
      * Y coordinate of the node on the panel.
      */
     private int y;
+
+    private ArrayList<Army> armies = new ArrayList<>();
 }
