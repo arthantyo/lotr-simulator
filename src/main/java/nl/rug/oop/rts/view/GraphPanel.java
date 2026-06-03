@@ -159,6 +159,12 @@ public class GraphPanel extends JPanel {
         }
     }
 
+    /**
+     * Draws team-specific army counters on the given node.
+     *
+     * @param g Graphics context used for rendering.
+     * @param node Node whose army markers are drawn.
+     */
     private void drawArmyMarkers(Graphics g, Node node) {
         int goodCount = 0;
         int evilCount = 0;

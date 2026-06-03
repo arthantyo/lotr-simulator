@@ -9,5 +9,5 @@ public enum GraphEventType {
     EDGE_ADDED,
     EDGE_DELETED,
     SELECTION_CHANGED,
-    ARMIES_CHANGED;
+    ARMIES_CHANGED
 }

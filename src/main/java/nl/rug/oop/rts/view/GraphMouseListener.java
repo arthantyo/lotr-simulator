@@ -42,10 +42,8 @@ public class GraphMouseListener extends MouseAdapter {
     private Node edgeStartNode = null;
 
     /**
-    * Radius for detecting clicks on nodes. Add more details here.
-    * @param graph Graph model that this listener will interact with. Must not be null.
-    * @param graphPanel Graph panel that will be repainted and panned.
-    */ 
+     * Radius used to detect whether a click is close enough to a node.
+     */ 
     private static final int NODE_RADIUS = 60;
 
     /**
