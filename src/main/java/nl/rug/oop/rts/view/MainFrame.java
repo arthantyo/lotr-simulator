@@ -8,12 +8,14 @@ import javax.swing.JMenuBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 
+import nl.rug.oop.rts.controller.CommandManager;
+import nl.rug.oop.rts.controller.command.AddNodeCommand;
+import nl.rug.oop.rts.controller.command.DeleteEdgeCommand;
+import nl.rug.oop.rts.controller.command.DeleteNodeCommand;
 import nl.rug.oop.rts.model.Edge;
 import nl.rug.oop.rts.model.Graph;
 import nl.rug.oop.rts.model.GraphEventType;
 import nl.rug.oop.rts.model.Node;
-import nl.rug.oop.rts.controller.*;
-import nl.rug.oop.rts.controller.command.*;
 import nl.rug.oop.rts.model.Simulation;
 
 /**
@@ -260,35 +262,6 @@ public class MainFrame extends JFrame {
         return new JButton[]{ startStop, stepForward, stepBack };
     }
 
-    /**
-     * Toggles the simulation between running and stopped. Updates the start/stop
-     * button text, hides the stepping buttons and clears the undo/redo history,
-     * since starting or ending a simulation resets the graph state.
-     *
-     * @param graph          the graph being simulated
-     * @param sim            the simulation controlling the graph
-     * @param commandManager manager whose edit history is cleared
-     * @param isRunning      flag tracking whether the simulation is running
-     * @param startStop      the start/stop button
-     * @param stepForward    the step-forward button
-     * @param stepBack       the step-back button
-     */
-    private void toggleSimulation(Graph graph, Simulation sim, CommandManager commandManager,
-            java.util.concurrent.atomic.AtomicBoolean isRunning,
-            JButton startStop, JButton stepForward, JButton stepBack) {
-        if (!isRunning.get()) {
-            isRunning.set(true);
-            startStop.setText("End Simulation");
-            sim.startSimulation(graph);
-        } else {
-            isRunning.set(false);
-            startStop.setText("Start Simulation");
-            sim.endSimulation(graph);
-        }
-        hideSimulationButtons(startStop, stepForward, stepBack);
-        commandManager.clear();
-        repaint();
-    }
 
     /**
      * Subscribes the options panel to the model so it shows the details of the

@@ -166,33 +166,44 @@ public class GraphPanel extends JPanel {
      * @param node Node whose army markers are drawn.
      */
     private void drawArmyMarkers(Graphics g, Node node) {
-        int goodCount = 0;
-        int evilCount = 0;
+        int markerSize = 50;
+        int overlap = 20;
+
+        int step = markerSize - overlap;
+
+        int armyCount = node.getArmies().size();
+
+        int totalWidth = markerSize + Math.max(0, armyCount - 1) * step;
+
+        int startX = node.getX() - totalWidth / 2;
+        int y = node.getY() - NODE_SIZE - 24;
+
+        int offset = 0;
+
         for (Army army : node.getArmies()) {
-            if (army.getTeam() == Team.GOOD) {
-                goodCount++;
-            } else if (army.getTeam() == Team.EVIL) {
-                evilCount++;
-            }
-        }
+            int markerX = startX + offset;
 
-        int markerSize = 20;
-        int markerX = node.getX() - markerSize / 2 - 4;
-        int goodY = node.getY() - NODE_SIZE / 2 - 4;
-        int evilY = node.getY() + NODE_SIZE / 2 - markerSize + 4;
+            String factionName = army.getFaction().name();
+            String textureKey =
+                    "faction" +
+                    factionName.substring(0, 1).toUpperCase() +
+                    factionName.substring(1).toLowerCase();
 
-        if (goodCount > 0) {
+            Image nodeImage = TextureLoader.getInstance()
+            .getTexture(textureKey, markerX, y);
+
             g.setColor(Color.GREEN);
-            g.fillOval(markerX, goodY, markerSize, markerSize);
-            g.setColor(Color.BLACK);
-            g.drawString(String.valueOf(goodCount), markerX + 7, goodY + 15);
-        }
+            g.fillRoundRect(markerX, y, markerSize, markerSize, 5, 5);
+            g.drawImage(nodeImage, markerX, y, markerSize, markerSize, null);
 
-        if (evilCount > 0) {
-            g.setColor(Color.RED);
-            g.fillOval(markerX, evilY, markerSize, markerSize);
             g.setColor(Color.BLACK);
-            g.drawString(String.valueOf(evilCount), markerX + 7, evilY + 15);
+            g.drawString(
+                String.valueOf(army.getUnits().size()),
+                markerX + markerSize / 2 - 10,
+                y - 4
+            );
+
+            offset += step;
         }
     }
 
