@@ -39,6 +39,10 @@ public class Army {
         return faction.getTeam();
     }
 
+    /**
+     * Calculates the total strength of this army by summing the power.
+     * @return the total strength of the army
+     */
     public int getStrength() {
         return units.stream()
                 .filter(u -> !u.isDead())
@@ -46,6 +50,9 @@ public class Army {
                 .sum();
     }
 
+    /**
+     * Removes all dead units from the army.
+     */
     public void removeDeadUnits() {
         units.removeIf(Unit::isDead);
     }

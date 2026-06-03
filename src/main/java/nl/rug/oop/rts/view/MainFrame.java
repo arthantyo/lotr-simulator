@@ -179,6 +179,7 @@ public class MainFrame extends JFrame {
         stepForward.setVisible(false);
         stepBack.setVisible(false);
     }
+    
     /**
      * Shows the step forward and step back buttons and resets the start/stop button text.
      *

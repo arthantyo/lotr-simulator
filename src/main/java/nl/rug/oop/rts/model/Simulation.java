@@ -388,7 +388,7 @@ public class Simulation {
         for (Unit originalUnit : original.getUnits()) {
             unitCopies.add(copyUnit(originalUnit));
         }
-        
+
         return new Army(original.getFaction(), unitCopies);
     }
 
@@ -398,7 +398,9 @@ public class Simulation {
      * @return a new Unit with the same properties
      */
     public Unit copyUnit(Unit original) {
-        Unit u = new Unit(original.getName(), original.getHealth(), original.getDamage(), original.getAbility(), new ArrayList<>());
+        Unit u = new Unit(original.getName(),
+                original.getHealth(), original.getDamage(),
+                original.getAbility(), new ArrayList<>());
         return u;
     }
 
@@ -436,9 +438,10 @@ public class Simulation {
     }
 
     /**
-     * Starts a battle at the specified node.
-     * @param armies The armies involved in the battle
-     * @param location The location where the battle occurs
+     * Starts a battle between the given armies at the specified location and returns the result.
+     * @param armies the armies participating in the battle
+     * @param location the location where the battle takes place
+     * @return the result of the battle, including the winner and damage/kill attribution
      */
     private BattleResult startBattle(ArrayList<Army> armies, BattleLocation location) {
         Battle battle = new Battle(armies); 

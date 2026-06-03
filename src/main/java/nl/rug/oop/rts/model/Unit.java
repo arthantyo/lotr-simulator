@@ -53,17 +53,27 @@ public class Unit {
         this.history = history;
     }
 
-
+    /**
+     * Calculates the power of this unit based on its health and damage.
+     * @return  the calculated power of the unit
+     */
     public int getPower() {
         return health + damage;
     }
 
+    /**
+     * Applies damage to this unit, reducing its health by the specified amount.
+     * @param amount the amount of damage to apply to the unit
+     */
     public void damage(int amount) {
         health -= Math.max(0, amount);
     }
 
+    /**
+     * Checks if this unit is dead (health is 0 or below).
+     * @return true if the unit is dead, false otherwise
+     */
     public boolean isDead() {
         return health <= 0;
     }
-
 }
