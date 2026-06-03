@@ -9,7 +9,7 @@ import lombok.Setter;
  * Represents a directed connection between two {@link Node} instances in the graph.
  * Contains an immutable id and name and mutable endpoints (`from` and `to`).
  */
-public class Edge implements BattleLocation {
+public class Edge implements BattleLocation, Nameable {
     /**
      * Unique identifier of the edge.
      */

@@ -6,9 +6,8 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-
+import java.awt.BasicStroke;
 import javax.swing.JPanel;
-
 import lombok.Getter;
 import nl.rug.oop.rts.model.Army;
 import nl.rug.oop.rts.model.Edge;
@@ -17,7 +16,7 @@ import nl.rug.oop.rts.model.GraphEventType;
 import nl.rug.oop.rts.model.Node;
 import nl.rug.oop.rts.model.Team;
 import nl.rug.oop.rts.util.TextureLoader;
-import java.awt.BasicStroke;
+import nl.rug.oop.rts.controller.*;
 
 /**
  * Panel where the graph will be drawn.
@@ -75,8 +74,9 @@ public class GraphPanel extends JPanel {
      * to graph events so the panel repaints automatically when the graph changes.
      *
      * @param graph The graph model this panel will observe and draw.
+     * @param commandManager Manager that records reversible actions for undo/redo.
      */
-    public GraphPanel(Graph graph) {
+    public GraphPanel(Graph graph, CommandManager commandManager) {
         this.graph = graph;
 
         backgroundImage = TextureLoader.getInstance()
@@ -89,7 +89,7 @@ public class GraphPanel extends JPanel {
         graph.addListener(GraphEventType.SELECTION_CHANGED, data -> repaint());
         graph.addListener(GraphEventType.ARMIES_CHANGED, data -> repaint());
 
-        this.mouseListener = new GraphMouseListener(graph, this);
+        this.mouseListener = new GraphMouseListener(graph, this, commandManager);
         addMouseListener(mouseListener);
         addMouseMotionListener(mouseListener);
         addMouseWheelListener(mouseListener);

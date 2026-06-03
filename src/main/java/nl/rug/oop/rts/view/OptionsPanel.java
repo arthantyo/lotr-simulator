@@ -18,6 +18,8 @@ import nl.rug.oop.rts.model.Edge;
 import nl.rug.oop.rts.model.Faction;
 import nl.rug.oop.rts.model.Graph;
 import nl.rug.oop.rts.model.Node;
+import nl.rug.oop.rts.controller.*;
+import nl.rug.oop.rts.controller.command.*;
 import nl.rug.oop.rts.model.Unit;
 
 import java.awt.Color;
@@ -32,15 +34,23 @@ import java.util.Random;
 public class OptionsPanel extends JPanel {
 
     /**
-     * Callback to invoke when a name is changed, so the graph panel can repaint.
+     * Manager used to record name changes for undo/redo.
+     */
+    private CommandManager commandManager;
+    /**
+     * Callback to invoke when an edge's name is changed, so the graph panel can repaint.
      */
     private Runnable onNameChanged = () -> {
     };
 
     /**
-     * Creates the options panel with a placeholder label.
+     * Creates the options panel with a grey background and a placeholder
+     * label shown when no graph element is selected.
+     *
+     * @param commandManager manager used to record name changes for undo/redo
      */
-    public OptionsPanel() {
+    public OptionsPanel(CommandManager commandManager) {
+        this.commandManager = commandManager;
         setBackground(Color.GRAY);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         add(new JLabel("Nothing selected"));
@@ -81,7 +91,7 @@ public class OptionsPanel extends JPanel {
         addCentered(new JLabel("To: " + edge.getTo().getName()));
 
         nameField.addActionListener(e -> {
-            edge.setName(nameField.getText());
+            commandManager.executeCommand(new RenameCommand(edge, nameField.getText()));
             onNameChanged.run();
         });
 
@@ -186,7 +196,7 @@ public class OptionsPanel extends JPanel {
         addCentered(nodeNameField);
 
         nodeNameField.addActionListener(e -> {
-            node.setName(nodeNameField.getText());
+            commandManager.executeCommand(new RenameCommand(node, nodeNameField.getText()));
             onNameChanged.run();
         });
     }
@@ -301,8 +311,7 @@ public class OptionsPanel extends JPanel {
         }
 
         Army army = new Army(faction, createRandomUnits(faction));
-        graph.addArmyToNode(node, army);
-        showNodeMenu(graph, node);
+        commandManager.executeCommand(new AddArmyCommand(graph, node, army));
     }
 
     /**
@@ -333,7 +342,6 @@ public class OptionsPanel extends JPanel {
         }
 
         Army armyToRemove = node.getArmies().get(node.getArmies().size() - 1);
-        graph.removeArmyFromNode(node, armyToRemove);
-        showNodeMenu(graph, node);
+        commandManager.executeCommand(new RemoveArmyCommand(graph, node, armyToRemove));
     }
 }
