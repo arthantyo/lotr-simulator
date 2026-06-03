@@ -12,7 +12,7 @@ import java.util.ArrayList;
  */
 @Getter
 @Setter
-public class Node {
+public class Node implements BattleLocation {
     /**
      * Unique identifier of the node.
      */

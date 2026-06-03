@@ -129,7 +129,7 @@ public class Simulation {
             }
 
             if (isDifferentTeam(source.getArmies())) {
-                startNodeBattle(source);
+                startBattle(source.getArmies(), source);
             }
 
             List<Edge> edges = neighboringEdges.get(source);
@@ -170,7 +170,7 @@ public class Simulation {
         selectedEdge.getArmies().add(army);
 
         if (isDifferentTeam(selectedEdge.getArmies())) {
-            startEdgeBattle(selectedEdge);
+            startBattle(selectedEdge.getArmies(), selectedEdge);
         }
     }
 
@@ -189,7 +189,7 @@ public class Simulation {
             }
 
             if (isDifferentTeam(sourceEdge.getArmies())) {
-                startEdgeBattle(sourceEdge);
+                startBattle(sourceEdge.getArmies(), sourceEdge);
             }
 
             moveArmyFromEdgeToNode(army, sourceEdge);
@@ -225,7 +225,7 @@ public class Simulation {
         targetNode.getArmies().add(army);
 
         if (isDifferentTeam(targetNode.getArmies())) {
-            startNodeBattle(targetNode);
+            startBattle(targetNode.getArmies(), targetNode);
         }
     }
 
@@ -383,7 +383,23 @@ public class Simulation {
      * @return a new Army with the same faction and a copy of the units list
      */
     private Army copyArmy(Army original) {
-        return new Army(original.getFaction(), new ArrayList<>(original.getUnits()));
+        ArrayList<Unit> unitCopies = new ArrayList<>();
+
+        for (Unit originalUnit : original.getUnits()) {
+            unitCopies.add(copyUnit(originalUnit));
+        }
+        
+        return new Army(original.getFaction(), unitCopies);
+    }
+
+    /**
+     * Creates a deep copy of a Unit object, including its history.
+     * @param original the unit to copy
+     * @return a new Unit with the same properties
+     */
+    public Unit copyUnit(Unit original) {
+        Unit u = new Unit(original.getName(), original.getHealth(), original.getDamage(), original.getAbility(), new ArrayList<>());
+        return u;
     }
 
     /**
@@ -421,22 +437,17 @@ public class Simulation {
 
     /**
      * Starts a battle at the specified node.
-     * @param node The node where the battle occurs
+     * @param armies The armies involved in the battle
+     * @param location The location where the battle occurs
      */
-    private void startNodeBattle(Node node) {
-        System.out.println("Node battle on node " + node.getId());
+    private BattleResult startBattle(ArrayList<Army> armies, BattleLocation location) {
+        Battle battle = new Battle(armies); 
 
-        // TODO: initiate the Battle class 
-    }
+        BattleResult result = battle.resolve();
 
-    /**
-     * Starts a battle at the specified edge.
-     * @param edge The edge where the battle occurs
-     */
-    private void startEdgeBattle(Edge edge) {
-        System.out.println("Edge battle on edge " + edge.getId());
+        System.out.println("Battle at " + location.getName() + " resolved. Winning team: " + result.getWinner());
 
-        // TODO: initiate the Battle class 
+        return result;
     }
 
     /**
@@ -481,19 +492,16 @@ public class Simulation {
       
         for (Node initialNode : initialGraph.getNodes()) {
             Node currentNode = graph.getNode(initialNode.getId());
-            if (currentNode != null) {
-                for (Army initialArmy : initialNode.getArmies()) {
-                    currentNode.getArmies().add(copyArmy(initialArmy));
-                }
+            System.out.println("Restoring armies on node " + currentNode.getName());
+            for (Army initialArmy : initialNode.getArmies()) {
+                currentNode.getArmies().add(copyArmy(initialArmy));
             }
         }
 
         for (Edge initialEdge : initialGraph.getEdges()) {
             Edge currentEdge = graph.getEdge(initialEdge.getId());
-            if (currentEdge != null) {
-                for (Army initialArmy : initialEdge.getArmies()) {
-                    currentEdge.getArmies().add(copyArmy(initialArmy));
-                }
+            for (Army initialArmy : initialEdge.getArmies()) {
+                currentEdge.getArmies().add(copyArmy(initialArmy));
             }
         }
     }

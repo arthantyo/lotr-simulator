@@ -1,6 +1,9 @@
 package nl.rug.oop.rts.model;
 
+import java.util.ArrayList;
+
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Represents one unit type inside an army, including combat stats.
@@ -28,9 +31,10 @@ public class Unit {
     private String ability;
 
     /**
-     * Short background text for this unit.
+     * History actions of this unit.
      */
-    private String history;
+    @Setter
+    private ArrayList<String> history;
 
     /**
      * Creates a unit with the given name and combat stats.
@@ -41,12 +45,25 @@ public class Unit {
      * @param ability ability of the unit
      * @param history history of the unit
      */
-    public Unit(String name, int damage, int health, String ability, String history) {
+    public Unit(String name, int damage, int health, String ability, ArrayList<String> history) {
         this.name = name;
         this.damage = damage;
         this.health = health;
         this.ability = ability;
         this.history = history;
+    }
+
+
+    public int getPower() {
+        return health + damage;
+    }
+
+    public void damage(int amount) {
+        health -= Math.max(0, amount);
+    }
+
+    public boolean isDead() {
+        return health <= 0;
     }
 
 }

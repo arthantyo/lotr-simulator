@@ -39,4 +39,14 @@ public class Army {
         return faction.getTeam();
     }
 
+    public int getStrength() {
+        return units.stream()
+                .filter(u -> !u.isDead())
+                .mapToInt(Unit::getPower)
+                .sum();
+    }
+
+    public void removeDeadUnits() {
+        units.removeIf(Unit::isDead);
+    }
 }
