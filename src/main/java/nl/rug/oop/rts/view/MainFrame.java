@@ -1,17 +1,18 @@
 package nl.rug.oop.rts.view;
 
+import java.awt.Dimension;
+
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 
-import java.awt.Dimension;
-
 import nl.rug.oop.rts.model.Edge;
 import nl.rug.oop.rts.model.Graph;
 import nl.rug.oop.rts.model.GraphEventType;
 import nl.rug.oop.rts.model.Node;
+import nl.rug.oop.rts.model.Simulation;
 
 /**
  * Main frame of the application. Serves as the top-level window,
@@ -31,6 +32,7 @@ public class MainFrame extends JFrame {
         Graph graph = new Graph();
         GraphPanel graphPanel = new GraphPanel(graph);
         OptionsPanel optionsPanel = new OptionsPanel();
+
         optionsPanel.setOnNameChanged(graphPanel::repaint);
 
         wireOptionsMenu(graph, optionsPanel);
@@ -63,6 +65,10 @@ public class MainFrame extends JFrame {
         JButton addEdge = createAddEdgeButton(graph, mouseListener);
         JButton removeNode = createRemoveNodeButton(graph);
         JButton removeEdge = createRemoveEdgeButton(graph);
+        JButton[] simButtons = createSimulationButtons(graph);
+        JButton startStop = simButtons[0];
+        JButton stepForward = simButtons[1];
+        JButton stepBack = simButtons[2];
 
         graph.addListener(GraphEventType.SELECTION_CHANGED, data -> {
             boolean nodeSelected = graph.getSelectedNode() != null;
@@ -77,6 +83,9 @@ public class MainFrame extends JFrame {
         menuBar.add(addEdge);
         menuBar.add(removeNode);
         menuBar.add(removeEdge);
+        menuBar.add(stepBack);
+        menuBar.add(startStop);
+        menuBar.add(stepForward);
         return menuBar;
     }
 
@@ -159,9 +168,64 @@ public class MainFrame extends JFrame {
     }
 
     /**
-     * Subscribes the options panel to the model so it shows the details of the
-     * currently selected node or edge, or a placeholder when nothing is selected.
+     * Hides the step forward and step back buttons and resets the start/stop button text.
      *
+     * @param startStop the button that starts/stops the simulation
+     * @param stepForward the button that steps the simulation forward
+     * @param stepBack the button that steps the simulation backward
+     */
+    private void hideSimulationButtons(JButton startStop, JButton stepForward, JButton stepBack) {
+        startStop.setText("Start Simulation");
+        stepForward.setVisible(false);
+        stepBack.setVisible(false);
+    }
+
+    /**
+     * Creates the buttons that control the simulation and wires them to the model.
+     * @param graph the graph model the buttons operate on
+     * @return the configured buttons in an array: [start/stop button, step forward button, step back button]
+     */
+    private JButton[] createSimulationButtons(Graph graph) {
+        JButton startStop = new JButton("Start Simulation");
+        JButton stepForward = new JButton("▶");
+        JButton stepBack = new JButton("◀");
+        hideSimulationButtons(startStop, stepForward, stepBack);
+
+        Simulation sim = new Simulation(graph);
+        var isRunning = new java.util.concurrent.atomic.AtomicBoolean(false);
+
+        startStop.addActionListener(e -> {
+            if (!isRunning.get()) {
+                isRunning.set(true);
+                startStop.setText("End Simulation");
+                hideSimulationButtons(startStop, stepForward, stepBack);
+                sim.startSimulation(graph);
+                repaint();
+            } else {
+                isRunning.set(false);
+                startStop.setText("Start Simulation");
+                hideSimulationButtons(startStop, stepForward, stepBack);
+                sim.endSimulation(graph);
+                repaint();
+            }
+        });
+
+        stepBack.addActionListener(e -> {
+            sim.subtractTime(graph);
+            repaint();
+        });
+
+        stepForward.addActionListener(e -> {
+            sim.advanceTime(graph);
+            repaint();
+        });
+  
+        return new JButton[]{ startStop, stepForward, stepBack };
+    }
+
+    /**
+     * Subscribes the options panel to the model so it shows the details of the
+     *  selected node or edge.
      * @param graph        the graph model to observe
      * @param optionsPanel the panel that displays element details
      */
