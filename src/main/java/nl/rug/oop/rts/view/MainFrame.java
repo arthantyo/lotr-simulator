@@ -179,6 +179,19 @@ public class MainFrame extends JFrame {
         stepForward.setVisible(false);
         stepBack.setVisible(false);
     }
+    
+    /**
+     * Shows the step forward and step back buttons and resets the start/stop button text.
+     *
+     * @param startStop the button that starts/stops the simulation
+     * @param stepForward the button that steps the simulation forward
+     * @param stepBack the button that steps the simulation backward
+     */
+    private void showSimulationButtons(JButton startStop, JButton stepForward, JButton stepBack) {
+        startStop.setText("End Simulation");
+        stepForward.setVisible(true);
+        stepBack.setVisible(true);
+    }
 
     /**
      * Creates the buttons that control the simulation and wires them to the model.
@@ -197,13 +210,11 @@ public class MainFrame extends JFrame {
         startStop.addActionListener(e -> {
             if (!isRunning.get()) {
                 isRunning.set(true);
-                startStop.setText("End Simulation");
-                hideSimulationButtons(startStop, stepForward, stepBack);
+                showSimulationButtons(startStop, stepForward, stepBack);
                 sim.startSimulation(graph);
                 repaint();
             } else {
                 isRunning.set(false);
-                startStop.setText("Start Simulation");
                 hideSimulationButtons(startStop, stepForward, stepBack);
                 sim.endSimulation(graph);
                 repaint();

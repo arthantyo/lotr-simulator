@@ -139,7 +139,7 @@ public class OptionsPanel extends JPanel {
             String name = getRandomUnitName(faction, random);
             int damage = 5 + random.nextInt(16);
 
-            units.add(new Unit(name, damage, health, "Basic attack", "This unit has no special history."));
+            units.add(new Unit(name, damage, health, "Basic attack", new ArrayList<>()));
         }
 
         return units;
