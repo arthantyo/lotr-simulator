@@ -164,7 +164,11 @@ public class MainFrame extends JFrame {
         return button;
     }
 
-
+    /**
+     * Creates the buttons that control the simulation and wires them to the model.
+     * @param graph the graph model the buttons operate on
+     * @return the configured buttons in an array: [start/stop button, step forward button, step back button]
+     */
     private JButton[] createSimulationButtons(Graph graph) {
         JButton startStop = new JButton("Start Simulation");
         JButton stepForward = new JButton("▶");
@@ -174,7 +178,6 @@ public class MainFrame extends JFrame {
 
         Simulation sim = new Simulation(graph);
         var isRunning = new java.util.concurrent.atomic.AtomicBoolean(false);
-
 
         startStop.addActionListener(e -> {
             if (!isRunning.get()) {
@@ -198,16 +201,13 @@ public class MainFrame extends JFrame {
         stepForward.addActionListener(e -> {
             sim.advanceTime(graph);
         });
-
   
         return new JButton[]{ startStop, stepForward, stepBack };
     }
 
-
     /**
      * Subscribes the options panel to the model so it shows the details of the
-     * currently selected node or edge, or a placeholder when nothing is selected.
-     *
+     *  selected node or edge.
      * @param graph        the graph model to observe
      * @param optionsPanel the panel that displays element details
      */

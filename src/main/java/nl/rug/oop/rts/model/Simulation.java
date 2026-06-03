@@ -10,11 +10,12 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import lombok.Getter;
 
+/**
+ * Manages the state and progression of the simulation.
+ */
 public class Simulation {
 
-    /*
-     * The initial graph state
-     */
+    /** The initial graph state. */
     private final Graph initialGraph;
 
     /**
@@ -24,7 +25,7 @@ public class Simulation {
     private int timeStep = 0; 
 
     /**
-     * Event chance
+     * Event chance.
      */
     private static final int EVENT_CHANCE_PERCENT = 10;
 
@@ -42,7 +43,7 @@ public class Simulation {
     }
 
     /**
-     * Reverts the simulation to the previous time step
+     * Reverts the simulation to the previous time step.
      * @param graph  The graph to revert. Must not be null.
      */
     public void subtractTime(Graph graph) {
@@ -60,107 +61,183 @@ public class Simulation {
 
     /**
      * Advances the simulation by one time step, moving armies and resolving battles and events.
-     * @param graph The graph to advance. Must not be null.
+     *
+     * @param graph The graph to advance.
      */
     public void advanceTime(Graph graph) {
         history.push(graph);
-
         System.out.println("Advancing simulation to time step " + (timeStep + 1));
         timeStep++;
 
-        // Snapshot all armies currently on nodes and edges (so moves don't interfere)
+        Map<Army, Node> armiesOnNodes = snapshotArmiesOnNodes(graph);
+        Map<Army, Edge> armiesOnEdges = snapshotArmiesOnEdges(graph);
+        Map<Node, List<Edge>> neighboringEdges = buildNeighboringEdges(graph.getEdges());
+
+        processArmiesOnNodes(armiesOnNodes, neighboringEdges);
+        processArmiesOnEdges(armiesOnEdges);
+    }
+
+    /**
+     * Snapshots all armies currently stationed on nodes.
+     *
+     * @param graph The graph containing nodes to snapshot.
+     * @return A map of each {@link Army} to the {@link Node} it currently occupies.
+     */
+    private Map<Army, Node> snapshotArmiesOnNodes(Graph graph) {
         Map<Army, Node> armiesOnNodes = new HashMap<>();
         for (Node node : graph.getNodes()) {
             for (Army army : node.getArmies()) {
                 armiesOnNodes.put(army, node);
             }
         }
+        return armiesOnNodes;
+    }
 
+    /**
+     * Snapshots all armies currently stationed on edges.
+     *
+     * @param graph The graph containing edges to snapshot.
+     * @return A map of each {@link Army} to the {@link Edge} it currently occupies.
+     */
+    private Map<Army, Edge> snapshotArmiesOnEdges(Graph graph) {
         Map<Army, Edge> armiesOnEdges = new HashMap<>();
         for (Edge edge : graph.getEdges()) {
             for (Army army : edge.getArmies()) {
                 armiesOnEdges.put(army, edge);
             }
         }
+        return armiesOnEdges;
+    }
 
-        Map<Node, List<Edge>> neighboringEdges = buildNeighboringEdges(graph.getEdges());
-
-        /*
-        * For each node with an army, randomly decide 
-        * to move it to one of its neighboring edges.
-        */
+    /**
+     * Processes all armies on nodes: resolves battles, moves each army to a random
+     * neighboring edge, and triggers random events.
+     *
+     * @param armiesOnNodes   A snapshot map of armies to their current nodes.
+     * @param neighboringEdges A map of each {@link Node} to its adjacent {@link Edge}s.
+     */
+    private void processArmiesOnNodes(Map<Army, Node> armiesOnNodes, Map<Node, List<Edge>> neighboringEdges) {
         for (Army army : new ArrayList<>(armiesOnNodes.keySet())) {
             Node source = armiesOnNodes.get(army);
-            if (source == null) continue;
-             
-            if (!source.getArmies().contains(army)) continue;
+            if (!isArmyValidOnNode(army, source)) {
+                continue;
+            }
 
-            // resolve battles on the node before moving
             if (isDifferentTeam(source.getArmies())) {
                 startNodeBattle(source);
             }
 
-            if (neighborEdges == null || neighborEdges.isEmpty()) continue;
-
-            int randomEdgeIndex = ThreadLocalRandom.current().nextInt(neighborEdges.size());
-            Edge selectedEdge = neighborEdges.get(randomEdgeIndex);
-
-            source.removeArmy(army);
-            selectedEdge.addArmy(army);
-
-           
-            if (isDifferentTeam(selectedEdge.getArmies())) {
-                startEdgeBattle(selectedEdge);
-            }
-
-
-            // TODO: add event chance
-            int eventChance = ThreadLocalRandom.current().nextInt(100);
-
-            if (eventChance < EVENT_CHANCE_PERCENT) {
-                // TODO: implement event logic
-                createRandomEvent();
-            }
-        }
-
-        /*
-        * For each edge with an army, randomly decide to move it 
-        * to either the `from` or `to` node.
-        */
-        for (Army army : new ArrayList<>(armiesOnEdges.keySet())) {
-            Edge sourceEdge = armiesOnEdges.get(army);
-            if (sourceEdge == null|| !sourceEdge.getArmies().contains(army)){
+            List<Edge> edges = neighboringEdges.get(source);
+            if (edges == null || edges.isEmpty()) {
                 continue;
-            };
-
-            // resolve battles on the edge before moving
-            if (isDifferentTeam(sourceEdge.getArmies())) {
-                startEdgeBattle(sourceEdge);
             }
 
-            Node targetNode = ThreadLocalRandom.current().nextBoolean() ? sourceEdge.getFrom() : sourceEdge.getTo();
-
-            sourceEdge.removeArmy(army);
-            targetNode.addArmy(army);
-           
-            if (isDifferentTeam(targetNode.getArmies())) {
-                startNodeBattle(targetNode);
-            } 
-
-            // TODO: add event chance
-            int eventChance = ThreadLocalRandom.current().nextInt(100);
-
-            if (eventChance < EVENT_CHANCE_PERCENT) {
-                // TODO: implement event logic
-                createRandomEvent();
-            }
+            moveArmyFromNodeToEdge(army, source, edges);
+            maybeCreateRandomEvent();
         }
     }
 
     /**
-     * Builds a mapping of each node to its neighboring edges
-     * @param edges The list of edges in the graph
-     * @return A map where the keys are nodes and the values are lists of edges 
+     * Returns whether an army is still valid on a given node, i.e. the node is
+     * non-null and still contains the army.
+     *
+     * @param army   The army to validate.
+     * @param source The node to check.
+     * @return {@code true} if the army is present on the node; {@code false} otherwise.
+     */
+    private boolean isArmyValidOnNode(Army army, Node source) {
+        return source != null && source.getArmies().contains(army);
+    }
+
+    /**
+     * Moves an army from a node to a randomly selected neighboring edge,
+     * then resolves any resulting battle on that edge.
+     *
+     * @param army   The army to move.
+     * @param source The node the army is departing from.
+     * @param edges  The list of neighboring edges to choose from.
+     */
+    private void moveArmyFromNodeToEdge(Army army, Node source, List<Edge> edges) {
+        int randomEdgeIndex = ThreadLocalRandom.current().nextInt(edges.size());
+        Edge selectedEdge = edges.get(randomEdgeIndex);
+
+        source.removeArmy(army);
+        selectedEdge.addArmy(army);
+
+        if (isDifferentTeam(selectedEdge.getArmies())) {
+            startEdgeBattle(selectedEdge);
+        }
+    }
+
+    /**
+     * Processes all armies on edges: resolves battles, moves each army to a randomly
+     * chosen endpoint node, and triggers random events.
+     *
+     * @param armiesOnEdges A snapshot map of armies to their current edges.
+     */
+    private void processArmiesOnEdges(Map<Army, Edge> armiesOnEdges) {
+        for (Army army : new ArrayList<>(armiesOnEdges.keySet())) {
+            Edge sourceEdge = armiesOnEdges.get(army);
+
+            if (!isArmyValidOnEdge(army, sourceEdge)) {
+                continue;
+            }
+
+            if (isDifferentTeam(sourceEdge.getArmies())) {
+                startEdgeBattle(sourceEdge);
+            }
+
+            moveArmyFromEdgeToNode(army, sourceEdge);
+            maybeCreateRandomEvent();
+        }
+    }
+
+    /**
+     * Returns whether an army is still valid on a given edge, i.e. the edge is
+     * non-null and still contains the army.
+     *
+     * @param army       The army to validate.
+     * @param sourceEdge The edge to check.
+     * @return {@code true} if the army is present on the edge; {@code false} otherwise.
+     */
+    private boolean isArmyValidOnEdge(Army army, Edge sourceEdge) {
+        return sourceEdge != null && sourceEdge.getArmies().contains(army);
+    }
+
+    /**
+     * Moves an army from an edge to a randomly chosen endpoint node ({@code from} or {@code to}),
+     * then resolves any resulting battle on that node.
+     *
+     * @param army       The army to move.
+     * @param sourceEdge The edge the army is departing from.
+     */
+    private void moveArmyFromEdgeToNode(Army army, Edge sourceEdge) {
+        Node targetNode = ThreadLocalRandom.current().nextBoolean()
+                ? sourceEdge.getFrom()
+                : sourceEdge.getTo();
+
+        sourceEdge.removeArmy(army);
+        targetNode.addArmy(army);
+
+        if (isDifferentTeam(targetNode.getArmies())) {
+            startNodeBattle(targetNode);
+        }
+    }
+
+    /**
+     * Rolls for a random event and triggers {@link #createRandomEvent()} if the
+     * result falls within {@link #EVENT_CHANCE_PERCENT}.
+     */
+    private void maybeCreateRandomEvent() {
+        if (ThreadLocalRandom.current().nextInt(100) < EVENT_CHANCE_PERCENT) {
+            createRandomEvent();
+        }
+    }
+
+    /**
+     * Builds a mapping of each node to its neighboring edges.
+     * @param edges The list of edges in the graph.
+     * @return A map where the keys are nodes and the values are lists of edges.
      */
     private Map<Node, List<Edge>> buildNeighboringEdges(List<Edge> edges) {
         Map<Node, List<Edge>> neighboringEdges = new HashMap<>();
@@ -174,7 +251,7 @@ public class Simulation {
     }
 
     /**
-     * Checks if there are armies from different teams on a list of armies
+     * Checks if there are armies from different teams on a list of armies.
      * @param armies The list of armies to check
      * @return true if there are armies from different teams, false otherwise
      */
@@ -191,7 +268,7 @@ public class Simulation {
     }
 
     /**
-     * Starts a battle at the specified node
+     * Starts a battle at the specified node.
      * @param node The node where the battle occurs
      */
     private void startNodeBattle(Node node) {
@@ -201,7 +278,7 @@ public class Simulation {
     }
 
     /**
-     * Starts a battle at the specified edge
+     * Starts a battle at the specified edge.
      * @param edge The edge where the battle occurs
      */
     private void startEdgeBattle(Edge edge) {
@@ -211,7 +288,7 @@ public class Simulation {
     }
 
     /**
-     * Creates a random event that affects the simulation
+     * Creates a random event that affects the simulation.
      */
     private void createRandomEvent() {
         System.out.println("A random event has occurred!");
@@ -220,8 +297,8 @@ public class Simulation {
     }
     
     /**
-     * Ends the simulation and resets to the initial graph state
-     * @param graph The graph to reset. Must not be null.
+     * Ends the simulation and resets to the initial graph state.
+     * @param graph The graph to reset.x
      */
     public void endSimulation(Graph graph) {
         timeStep = 0;
