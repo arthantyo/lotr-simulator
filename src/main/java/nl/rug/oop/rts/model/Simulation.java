@@ -8,12 +8,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+
 import lombok.Getter;
 
 /**
  * Manages the state and progression of the simulation.
  */
 public class Simulation {
+
+    /**
+     * Chance that an army encounters an event when arriving at a location.
+     */
+    private static final int EVENT_CHANCE_PERCENT = 50;
 
     /** The initial graph state. */
     private Graph initialGraph;
@@ -22,12 +30,7 @@ public class Simulation {
      * Current time step of the simulation.
      */
     @Getter
-    private int timeStep = 0; 
-
-    /**
-     * Event chance.
-     */
-    private static final int EVENT_CHANCE_PERCENT = 10;
+    private int timeStep = 0;
 
     /**
      * History of graph states for stepping back in time.
@@ -36,6 +39,7 @@ public class Simulation {
 
     /**
      * Constructor for Simulation. Add more details here.
+     * 
      * @param graph The initial graph state for the simulation. Must not be null.
      */
     public Simulation(Graph graph) {
@@ -44,7 +48,8 @@ public class Simulation {
 
     /**
      * Reverts the simulation to the previous time step.
-     * @param graph  The graph to revert. Must not be null.
+     * 
+     * @param graph The graph to revert. Must not be null.
      */
     public void subtractTime(Graph graph) {
         if (history.isEmpty()) {
@@ -52,7 +57,7 @@ public class Simulation {
             return;
         }
 
-        if(timeStep == 0) {
+        if (timeStep == 0) {
             System.out.println("Already at initial state, cannot revert further.");
             return;
         }
@@ -64,7 +69,8 @@ public class Simulation {
     }
 
     /**
-     * Advances the simulation by one time step, moving armies and resolving battles and events.
+     * Advances the simulation by one time step, moving armies and resolving battles
+     * and events.
      *
      * @param graph The graph to advance.
      */
@@ -118,8 +124,9 @@ public class Simulation {
      * Processes all armies on nodes: resolves battles, moves each army to a random
      * neighboring edge, and triggers random events.
      *
-     * @param armiesOnNodes   A snapshot map of armies to their current nodes.
-     * @param neighboringEdges A map of each {@link Node} to its adjacent {@link Edge}s.
+     * @param armiesOnNodes    A snapshot map of armies to their current nodes.
+     * @param neighboringEdges A map of each {@link Node} to its adjacent
+     *                         {@link Edge}s.
      */
     private void processArmiesOnNodes(Map<Army, Node> armiesOnNodes, Map<Node, List<Edge>> neighboringEdges) {
         for (Army army : new ArrayList<>(armiesOnNodes.keySet())) {
@@ -138,7 +145,6 @@ public class Simulation {
             }
 
             moveArmyFromNodeToEdge(army, source, edges);
-            maybeCreateRandomEvent();
         }
     }
 
@@ -148,7 +154,8 @@ public class Simulation {
      *
      * @param army   The army to validate.
      * @param source The node to check.
-     * @return {@code true} if the army is present on the node; {@code false} otherwise.
+     * @return {@code true} if the army is present on the node; {@code false}
+     *         otherwise.
      */
     private boolean isArmyValidOnNode(Army army, Node source) {
         return source != null && source.getArmies().contains(army);
@@ -172,10 +179,13 @@ public class Simulation {
         if (isDifferentTeam(selectedEdge.getArmies())) {
             startBattle(selectedEdge.getArmies(), selectedEdge);
         }
+
+        maybeEncounterEvent(army, selectedEdge);
     }
 
     /**
-     * Processes all armies on edges: resolves battles, moves each army to a randomly
+     * Processes all armies on edges: resolves battles, moves each army to a
+     * randomly
      * chosen endpoint node, and triggers random events.
      *
      * @param armiesOnEdges A snapshot map of armies to their current edges.
@@ -193,7 +203,6 @@ public class Simulation {
             }
 
             moveArmyFromEdgeToNode(army, sourceEdge);
-            maybeCreateRandomEvent();
         }
     }
 
@@ -203,14 +212,16 @@ public class Simulation {
      *
      * @param army       The army to validate.
      * @param sourceEdge The edge to check.
-     * @return {@code true} if the army is present on the edge; {@code false} otherwise.
+     * @return {@code true} if the army is present on the edge; {@code false}
+     *         otherwise.
      */
     private boolean isArmyValidOnEdge(Army army, Edge sourceEdge) {
         return sourceEdge != null && sourceEdge.getArmies().contains(army);
     }
 
     /**
-     * Moves an army from an edge to a randomly chosen endpoint node ({@code from} or {@code to}),
+     * Moves an army from an edge to a randomly chosen endpoint node ({@code from}
+     * or {@code to}),
      * then resolves any resulting battle on that node.
      *
      * @param army       The army to move.
@@ -227,20 +238,40 @@ public class Simulation {
         if (isDifferentTeam(targetNode.getArmies())) {
             startBattle(targetNode.getArmies(), targetNode);
         }
+
+        maybeEncounterEvent(army, targetNode);
     }
 
     /**
-     * Rolls for a random event and triggers {@link #createRandomEvent()} if the
-     * result falls within {@link #EVENT_CHANCE_PERCENT}.
+     * Possibly applies a random event from the given location to the given army.
+     *
+     * @param army     army that arrived at the location
+     * @param location location whose events may be encountered
      */
-    private void maybeCreateRandomEvent() {
-        if (ThreadLocalRandom.current().nextInt(100) < EVENT_CHANCE_PERCENT) {
-            createRandomEvent();
+    private void maybeEncounterEvent(Army army, BattleLocation location) {
+        if (location.getEvents().isEmpty()) {
+            return;
         }
+
+        if (ThreadLocalRandom.current().nextInt(100) >= EVENT_CHANCE_PERCENT) {
+            return;
+        }
+
+        int eventIndex = ThreadLocalRandom.current().nextInt(location.getEvents().size());
+        Event event = location.getEvents().get(eventIndex);
+
+        String message = event.apply(army);
+
+        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
+                null,
+                message,
+                "Event at " + location.getName(),
+                JOptionPane.INFORMATION_MESSAGE));
     }
 
     /**
      * Builds a mapping of each node to its neighboring edges.
+     * 
      * @param edges The list of edges in the graph.
      * @return A map where the keys are nodes and the values are lists of edges.
      */
@@ -272,11 +303,13 @@ public class Simulation {
     }
 
     /**
-     * Deep-copies all nodes from {@code source} into {@code copy}, including their armies.
+     * Deep-copies all nodes from {@code source} into {@code copy}, including their
+     * armies.
      *
      * @param source the graph to copy nodes from
      * @param copy   the graph to copy nodes into
-     * @return a map of original node IDs to their corresponding copied {@link Node}s,
+     * @return a map of original node IDs to their corresponding copied
+     *         {@link Node}s,
      *         used to resolve edge endpoints and selection state
      */
     private Map<Integer, Node> copyNodes(Graph source, Graph copy) {
@@ -288,6 +321,7 @@ public class Simulation {
                     originalNode.getName(),
                     originalNode.getX(),
                     originalNode.getY());
+            nodeCopy.getEvents().addAll(originalNode.getEvents());
 
             for (Army originalArmy : originalNode.getArmies()) {
                 nodeCopy.getArmies().add(copyArmy(originalArmy));
@@ -301,7 +335,8 @@ public class Simulation {
     }
 
     /**
-     * Deep-copies all edges from {@code source} into {@code copy}, including their armies.
+     * Deep-copies all edges from {@code source} into {@code copy}, including their
+     * armies.
      * Endpoint nodes are resolved via {@code nodeCopiesById}.
      *
      * @param source         the graph to copy edges from
@@ -316,6 +351,7 @@ public class Simulation {
                     originalEdge.getName(),
                     nodeCopiesById.get(originalEdge.getFrom().getId()),
                     nodeCopiesById.get(originalEdge.getTo().getId()));
+            edgeCopy.getEvents().addAll(originalEdge.getEvents());
 
             for (Army originalArmy : originalEdge.getArmies()) {
                 edgeCopy.getArmies().add(copyArmy(originalArmy));
@@ -364,7 +400,7 @@ public class Simulation {
      * @param copy   the graph to apply the selected edge to
      */
     private void copySelectedEdge(Graph source, Graph copy) {
-        if (source.getSelectedEdge() == null){
+        if (source.getSelectedEdge() == null) {
             return;
         }
 
@@ -394,20 +430,23 @@ public class Simulation {
 
     /**
      * Creates a deep copy of a Unit object, including its history.
+     * 
      * @param original the unit to copy
      * @return a new Unit with the same properties
      */
     public Unit copyUnit(Unit original) {
-        Unit u = new Unit(original.getName(),
-                original.getHealth(), original.getDamage(),
-                original.getAbility(), new ArrayList<>());
-        return u;
+        return new Unit(
+                original.getName(),
+                original.getDamage(),
+                original.getHealth(),
+                original.getAbility(),
+                new ArrayList<>(original.getHistory()));
     }
 
     /**
      * Restores a live graph to the provided snapshot.
      *
-     * @param target the graph to update
+     * @param target   the graph to update
      * @param snapshot the snapshot to apply
      */
     private void restoreGraphState(Graph target, Graph snapshot) {
@@ -422,10 +461,11 @@ public class Simulation {
 
     /**
      * Checks if there are armies from different teams on a list of armies.
+     * 
      * @param armies The list of armies to check
      * @return true if there are armies from different teams, false otherwise
      */
-    private boolean isDifferentTeam(ArrayList<Army> armies ) {
+    private boolean isDifferentTeam(ArrayList<Army> armies) {
         for (int i = 0; i < armies.size(); i++) {
             for (int j = i + 1; j < armies.size(); j++) {
                 if (!armies.get(i).getTeam().equals(armies.get(j).getTeam())) {
@@ -438,13 +478,16 @@ public class Simulation {
     }
 
     /**
-     * Starts a battle between the given armies at the specified location and returns the result.
-     * @param armies the armies participating in the battle
+     * Starts a battle between the given armies at the specified location and
+     * returns the result.
+     * 
+     * @param armies   the armies participating in the battle
      * @param location the location where the battle takes place
-     * @return the result of the battle, including the winner and damage/kill attribution
+     * @return the result of the battle, including the winner and damage/kill
+     *         attribution
      */
     private BattleResult startBattle(ArrayList<Army> armies, BattleLocation location) {
-        Battle battle = new Battle(armies); 
+        Battle battle = new Battle(armies);
 
         BattleResult result = battle.resolve();
 
@@ -454,16 +497,8 @@ public class Simulation {
     }
 
     /**
-     * Creates a random event that affects the simulation.
-     */
-    private void createRandomEvent() {
-        System.out.println("A random event has occurred!");
-
-        // TODO: intiate the Event class
-    }
-       
-    /**
      * Ends the simulation and restores all armies to their initial positions.
+     * 
      * @param graph The graph to reset.
      */
     public void startSimulation(Graph graph) {
@@ -472,6 +507,7 @@ public class Simulation {
 
     /**
      * Ends the simulation and restores all armies to their initial positions.
+     * 
      * @param graph The graph to reset.
      */
     public void endSimulation(Graph graph) {
@@ -481,7 +517,8 @@ public class Simulation {
     }
 
     /**
-     * Restores all armies to their initial positions based on the initial graph snapshot.
+     * Restores all armies to their initial positions based on the initial graph
+     * snapshot.
      *
      * @param graph the graph whose armies should be restored
      */
@@ -492,7 +529,7 @@ public class Simulation {
         for (Edge edge : graph.getEdges()) {
             edge.getArmies().clear();
         }
-      
+
         for (Node initialNode : initialGraph.getNodes()) {
             Node currentNode = graph.getNode(initialNode.getId());
             System.out.println("Restoring armies on node " + currentNode.getName());

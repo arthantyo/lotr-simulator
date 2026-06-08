@@ -21,6 +21,11 @@ import nl.rug.oop.rts.model.Node;
 import nl.rug.oop.rts.controller.*;
 import nl.rug.oop.rts.controller.command.*;
 import nl.rug.oop.rts.model.Unit;
+import nl.rug.oop.rts.model.BattleLocation;
+import nl.rug.oop.rts.model.Event;
+import nl.rug.oop.rts.model.HiddenWeaponryEvent;
+import nl.rug.oop.rts.model.NaturalDisasterEvent;
+import nl.rug.oop.rts.model.ReinforcementsEvent;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -38,7 +43,8 @@ public class OptionsPanel extends JPanel {
      */
     private CommandManager commandManager;
     /**
-     * Callback to invoke when an edge's name is changed, so the graph panel can repaint.
+     * Callback to invoke when an edge's name is changed, so the graph panel can
+     * repaint.
      */
     private Runnable onNameChanged = () -> {
     };
@@ -66,6 +72,78 @@ public class OptionsPanel extends JPanel {
     }
 
     /**
+     * Displays all events currently available at a location.
+     *
+     * @param location location whose events are displayed
+     */
+    private void addEventDetails(BattleLocation location) {
+        addCentered(new JLabel("Events: " + location.getEvents().size()));
+
+        for (Event event : location.getEvents()) {
+            addCentered(new JLabel(event.getName()));
+        }
+    }
+
+    /**
+     * Adds buttons for adding and removing events from a location.
+     *
+     * @param graph    graph model used to update events
+     * @param location location whose events are managed
+     */
+    private void addEventButtons(Graph graph, BattleLocation location) {
+        JButton addEventButton = new JButton("Add Event");
+        addCentered(addEventButton);
+        addEventButton.addActionListener(e -> addEvent(graph, location));
+
+        JButton removeEventButton = new JButton("Remove Event");
+        removeEventButton.setEnabled(!location.getEvents().isEmpty());
+        addCentered(removeEventButton);
+        removeEventButton.addActionListener(e -> removeLastEvent(graph, location));
+    }
+
+    /**
+     * Prompts the user to select an event and adds it to a location.
+     *
+     * @param graph    graph model used to update events
+     * @param location location that receives the event
+     */
+    private void addEvent(Graph graph, BattleLocation location) {
+        Event[] events = {
+            new ReinforcementsEvent(),
+            new NaturalDisasterEvent(),
+            new HiddenWeaponryEvent()
+        };
+
+        Event selectedEvent = (Event) JOptionPane.showInputDialog(
+                this,
+                "Select event:",
+                "Add Event",
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                events,
+                events[0]);
+
+        if (selectedEvent != null) {
+            graph.addEventToLocation(location, selectedEvent);
+        }
+    }
+
+    /**
+     * Removes the most recently added event from a location.
+     *
+     * @param graph    graph model used to update events
+     * @param location location whose event is removed
+     */
+    private void removeLastEvent(Graph graph, BattleLocation location) {
+        if (location.getEvents().isEmpty()) {
+            return;
+        }
+
+        Event event = location.getEvents().get(location.getEvents().size() - 1);
+        graph.removeEventFromLocation(location, event);
+    }
+
+    /**
      * Displays the default message when no graph element is selected.
      */
     public void showNothingSelected() {
@@ -78,9 +156,10 @@ public class OptionsPanel extends JPanel {
     /**
      * Displays the edge editing menu.
      *
-     * @param edge the edge whose details should be displayed and edited
+     * @param graph graph model used to add or remove events
+     * @param edge  edge whose details should be displayed and edited
      */
-    public void showEdgeMenu(Edge edge) {
+    public void showEdgeMenu(Graph graph, Edge edge) {
         removeAll();
 
         addCentered(new JLabel("Edge Name:"));
@@ -94,6 +173,9 @@ public class OptionsPanel extends JPanel {
             commandManager.executeCommand(new RenameCommand(edge, nameField.getText()));
             onNameChanged.run();
         });
+
+        addEventDetails(edge);
+        addEventButtons(graph, edge);
 
         revalidate();
         repaint();
@@ -178,6 +260,8 @@ public class OptionsPanel extends JPanel {
         addNodeNameField(node);
         addArmyDetails(node);
         addArmyButtons(graph, node);
+        addEventDetails(node);
+        addEventButtons(graph, node);
 
         revalidate();
         repaint();

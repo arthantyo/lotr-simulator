@@ -5,14 +5,13 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 
-
 /**
  * Represents a node (vertex) in the graph with an immutable id and an editable
  * name.
  */
 @Getter
 @Setter
-public class Node implements Nameable,BattleLocation {
+public class Node implements Nameable, BattleLocation {
     /**
      * Unique identifier of the node.
      */
@@ -39,12 +38,17 @@ public class Node implements Nameable,BattleLocation {
     private ArrayList<Army> armies = new ArrayList<>();
 
     /**
+     * Events that can occur on this node.
+     */
+    private ArrayList<Event> events = new ArrayList<>();
+
+    /**
      * Creates a node at the given position with an empty army list.
      *
-     * @param id unique identifier of the node
+     * @param id   unique identifier of the node
      * @param name display name of the node
-     * @param x x coordinate on the map
-     * @param y y coordinate on the map
+     * @param x    x coordinate on the map
+     * @param y    y coordinate on the map
      */
     public Node(int id, String name, int x, int y) {
         this.id = id;

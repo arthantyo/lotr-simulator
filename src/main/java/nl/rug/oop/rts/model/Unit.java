@@ -39,9 +39,9 @@ public class Unit {
     /**
      * Creates a unit with the given name and combat stats.
      *
-     * @param name display name of the unit
-     * @param damage damage value of the unit
-     * @param health health value of the unit
+     * @param name    display name of the unit
+     * @param damage  damage value of the unit
+     * @param health  health value of the unit
      * @param ability ability of the unit
      * @param history history of the unit
      */
@@ -55,7 +55,8 @@ public class Unit {
 
     /**
      * Calculates the power of this unit based on its health and damage.
-     * @return  the calculated power of the unit
+     * 
+     * @return the calculated power of the unit
      */
     public int getPower() {
         return health + damage;
@@ -63,6 +64,7 @@ public class Unit {
 
     /**
      * Applies damage to this unit, reducing its health by the specified amount.
+     * 
      * @param amount the amount of damage to apply to the unit
      */
     public void damage(int amount) {
@@ -71,9 +73,19 @@ public class Unit {
 
     /**
      * Checks if this unit is dead (health is 0 or below).
+     * 
      * @return true if the unit is dead, false otherwise
      */
     public boolean isDead() {
         return health <= 0;
+    }
+
+    /**
+     * Increases this unit's damage by the given amount.
+     *
+     * @param amount amount of damage to add
+     */
+    public void increaseDamage(int amount) {
+        damage += Math.max(0, amount);
     }
 }

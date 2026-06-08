@@ -298,4 +298,26 @@ public class Graph {
         edge.getArmies().remove(army);
         emit(GraphEventType.ARMIES_CHANGED, edge);
     }
+
+    /**
+     * Adds an event to a battle location and notifies listeners.
+     *
+     * @param location location that receives the event
+     * @param event    event to add
+     */
+    public void addEventToLocation(BattleLocation location, Event event) {
+        location.getEvents().add(event);
+        emit(GraphEventType.EVENTS_CHANGED, location);
+    }
+
+    /**
+     * Removes an event from a battle location and notifies listeners.
+     *
+     * @param location location that contains the event
+     * @param event    event to remove
+     */
+    public void removeEventFromLocation(BattleLocation location, Event event) {
+        location.getEvents().remove(event);
+        emit(GraphEventType.EVENTS_CHANGED, location);
+    }
 }
