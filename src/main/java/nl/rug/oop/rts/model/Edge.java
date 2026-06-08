@@ -6,7 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Represents a directed connection between two {@link Node} instances in the graph.
+ * Represents a directed connection between two {@link Node} instances in the
+ * graph.
  * Contains an immutable id and name and mutable endpoints (`from` and `to`).
  */
 public class Edge implements BattleLocation, Nameable {
@@ -21,7 +22,7 @@ public class Edge implements BattleLocation, Nameable {
      */
     @Getter
     @Setter
-    private  String name;
+    private String name;
 
     /**
      * First node connected by this edge.
@@ -44,12 +45,20 @@ public class Edge implements BattleLocation, Nameable {
     private ArrayList<Army> armies = new ArrayList<>();
 
     /**
+     * Events that can occur on this edge.
+     */
+    @Getter
+    private ArrayList<Event> events = new ArrayList<>();
+
+    /**
      * Creates an edge connecting two nodes.
      *
      * @param id   ID of the edge. Must be unique within the graph.
      * @param name Name of the edge.
-     * @param from Node from which the edge starts. Must be a node that exists in the graph.
-     * @param to   Node to which the edge points. Must be a node that exists in the graph.
+     * @param from Node from which the edge starts. Must be a node that exists in
+     *             the graph.
+     * @param to   Node to which the edge points. Must be a node that exists in the
+     *             graph.
      */
     public Edge(int id, String name, Node from, Node to) {
         this.id = id;
@@ -57,5 +66,4 @@ public class Edge implements BattleLocation, Nameable {
         this.from = from;
         this.to = to;
     }
-
 }

@@ -58,8 +58,8 @@ public class MainFrame extends JFrame {
      * selection-dependent buttons to the model so they enable/disable
      * according to the current selection.
      *
-     * @param graph      the graph model the buttons operate on
-     * @param graphPanel the panel displaying the graph
+     * @param graph          the graph model the buttons operate on
+     * @param graphPanel     the panel displaying the graph
      * @param commandManager manager that records reversible actions for undo/redo
      * @return the configured menu bar
      */
@@ -115,9 +115,10 @@ public class MainFrame extends JFrame {
     /**
      * Creates the button that adds a new node to the graph.
      *
-     * @param graph      the graph model the button operates on
-     * @param graphPanel the panel used to determine the initial position of the new
-     *                   node
+     * @param graph          the graph model the button operates on
+     * @param graphPanel     the panel used to determine the initial position of the
+     *                       new
+     *                       node
      * @param commandManager manager that records reversible actions for undo/redo
      * @return the configured button
      */
@@ -159,7 +160,7 @@ public class MainFrame extends JFrame {
     /**
      * Creates the button that removes the selected node.
      *
-     * @param graph the graph model the button operates on
+     * @param graph          the graph model the button operates on
      * @param commandManager manager that records reversible actions for undo/redo
      * @return the configured button
      */
@@ -178,7 +179,7 @@ public class MainFrame extends JFrame {
     /**
      * Creates the button that removes the selected edge.
      *
-     * @param graph the graph model the button operates on
+     * @param graph          the graph model the button operates on
      * @param commandManager manager that records reversible actions for undo/redo
      * @return the configured button
      */
@@ -195,24 +196,26 @@ public class MainFrame extends JFrame {
     }
 
     /**
-     * Hides the step forward and step back buttons and resets the start/stop button text.
+     * Hides the step forward and step back buttons and resets the start/stop button
+     * text.
      *
-     * @param startStop the button that starts/stops the simulation
+     * @param startStop   the button that starts/stops the simulation
      * @param stepForward the button that steps the simulation forward
-     * @param stepBack the button that steps the simulation backward
+     * @param stepBack    the button that steps the simulation backward
      */
     private void hideSimulationButtons(JButton startStop, JButton stepForward, JButton stepBack) {
         startStop.setText("Start Simulation");
         stepForward.setVisible(false);
         stepBack.setVisible(false);
     }
-    
+
     /**
-     * Shows the step forward and step back buttons and resets the start/stop button text.
+     * Shows the step forward and step back buttons and resets the start/stop button
+     * text.
      *
-     * @param startStop the button that starts/stops the simulation
+     * @param startStop   the button that starts/stops the simulation
      * @param stepForward the button that steps the simulation forward
-     * @param stepBack the button that steps the simulation backward
+     * @param stepBack    the button that steps the simulation backward
      */
     private void showSimulationButtons(JButton startStop, JButton stepForward, JButton stepBack) {
         startStop.setText("End Simulation");
@@ -222,9 +225,12 @@ public class MainFrame extends JFrame {
 
     /**
      * Creates the buttons that control the simulation and wires them to the model.
-     * @param graph the graph model the buttons operate on
-     * @param commandManager manager whose edit history is cleared on simulation start/end
-     * @return the configured buttons in an array: [start/stop button, step forward button, step back button]
+     * 
+     * @param graph          the graph model the buttons operate on
+     * @param commandManager manager whose edit history is cleared on simulation
+     *                       start/end
+     * @return the configured buttons in an array: [start/stop button, step forward
+     *         button, step back button]
      */
     private JButton[] createSimulationButtons(Graph graph, CommandManager commandManager) {
         JButton startStop = new JButton("Start Simulation");
@@ -258,13 +264,14 @@ public class MainFrame extends JFrame {
             sim.advanceTime(graph);
             repaint();
         });
-  
-        return new JButton[]{ startStop, stepForward, stepBack };
+
+        return new JButton[] { startStop, stepForward, stepBack };
     }
 
     /**
      * Subscribes the options panel to the model so it shows the details of the
-     *  selected node or edge.
+     * selected node or edge.
+     * 
      * @param graph        the graph model to observe
      * @param optionsPanel the panel that displays element details
      */
@@ -273,9 +280,17 @@ public class MainFrame extends JFrame {
             if (graph.getSelectedNode() != null) {
                 optionsPanel.showNodeMenu(graph, graph.getSelectedNode());
             } else if (graph.getSelectedEdge() != null) {
-                optionsPanel.showEdgeMenu(graph.getSelectedEdge());
+                optionsPanel.showEdgeMenu(graph, graph.getSelectedEdge());
             } else {
                 optionsPanel.showNothingSelected();
+            }
+        });
+
+        graph.addListener(GraphEventType.EVENTS_CHANGED, data -> {
+            if (graph.getSelectedNode() != null) {
+                optionsPanel.showNodeMenu(graph, graph.getSelectedNode());
+            } else if (graph.getSelectedEdge() != null) {
+                optionsPanel.showEdgeMenu(graph, graph.getSelectedEdge());
             }
         });
 
