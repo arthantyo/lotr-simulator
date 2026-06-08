@@ -17,6 +17,7 @@ import nl.rug.oop.rts.model.Graph;
 import nl.rug.oop.rts.model.GraphEventType;
 import nl.rug.oop.rts.model.Node;
 import nl.rug.oop.rts.model.Simulation;
+import nl.rug.oop.rts.util.GraphSaver;
 
 /**
  * Main frame of the application. Serves as the top-level window,
@@ -79,6 +80,7 @@ public class MainFrame extends JFrame {
         JButton startStop = simButtons[0];
         JButton stepForward = simButtons[1];
         JButton stepBack = simButtons[2];
+        JButton save = createSaveButton(graph);
 
         graph.addListener(GraphEventType.SELECTION_CHANGED, data -> {
             boolean nodeSelected = graph.getSelectedNode() != null;
@@ -95,7 +97,19 @@ public class MainFrame extends JFrame {
         });
 
         return buildMenuBar(addNode, addEdge, removeNode, removeEdge,
-                undo, redo, stepBack, startStop, stepForward);
+                undo, redo, stepBack, startStop, stepForward, save);
+    }
+
+    /**
+     * Creates the button that saves the current simulation state to a JSON file.
+     *
+     * @param graph the graph model to export
+     * @return the configured button
+     */
+    private JButton createSaveButton(Graph graph) {
+        JButton button = new JButton("Save");
+        button.addActionListener(e -> new GraphSaver().save(this, graph));
+        return button;
     }
 
     /**

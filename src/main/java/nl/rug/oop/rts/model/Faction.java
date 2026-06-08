@@ -17,6 +17,9 @@ public enum Faction {
      */
     private final Team team;
 
+    /**
+     * Human-readable display name of the faction, used when exporting to JSON.
+     */
     private String name;
 
 }
