@@ -3,33 +3,20 @@ package nl.rug.oop.rts.model;
 /**
  * Available factions in the simulation and the team each faction belongs to.
  */
+@lombok.AllArgsConstructor
+@lombok.Getter
 public enum Faction {
-    MEN(Team.GOOD),
-    ELVES(Team.GOOD),
-    DWARVES(Team.GOOD),
-    MORDOR(Team.EVIL),
-    ISENGARD(Team.EVIL);
+    MEN(Team.GOOD, "Men"),
+    ELVES(Team.GOOD, "Elves"),
+    DWARVES(Team.GOOD, "Dwarves"),
+    MORDOR(Team.EVIL, "Mordor"),
+    ISENGARD(Team.EVIL, "Isengard"),;
 
     /**
      * Team associated with this faction.
      */
     private final Team team;
 
-    /**
-     * Creates a faction value assigned to a team.
-     *
-     * @param team team this faction belongs to
-     */
-    Faction(Team team) {
-        this.team = team;
-    }
+    private String name;
 
-    /**
-     * Returns the team this faction belongs to.
-     *
-     * @return faction team
-     */
-    public Team getTeam() {
-        return team;
-    }
 }
