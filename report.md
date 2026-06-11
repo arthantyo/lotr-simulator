@@ -45,8 +45,8 @@ per event type (instead of one generic "changed" event) lets each view react
 only to what it cares about.
 
 **JSON export (2.7).** We split this into `GraphSerializer` (walks the graph and
-decides *what* to write) and `JsonBuilder` (a small hand-written writer for the
-*how*: indentation, commas, escaping). `GraphSaver` connects it to a
+decides _what_ to write) and `JsonBuilder` (a small hand-written writer for the
+_how_: indentation, commas, escaping). `GraphSaver` connects it to a
 `JFileChooser` and forces a `.json` ending. No libraries are used.
 
 ## Evaluation of the program
@@ -94,15 +94,15 @@ Answer:
 
 **Roles of each component.**
 
-- *Model* holds the data and logic and knows nothing about how it is shown. This
+- _Model_ holds the data and logic and knows nothing about how it is shown. This
   is our `model` package: `Graph`, `Node`, `Edge`, `Army`, `Unit`, `Event`, the
   battle classes and `Simulation`. For example, `Graph.deleteNode` removes a node
   and its edges and then notifies its observers; it does not draw anything.
-- *View* shows the model and has no logic of its own. This is the `view` package.
+- _View_ shows the model and has no logic of its own. This is the `view` package.
   `GraphPanel` reads the graph and paints the nodes, edges and armies, and
   `OptionsPanel` shows the selected node or edge. It observes the model and
   refreshes when told.
-- *Controller* takes user input and changes the model. This is the `controller`
+- _Controller_ takes user input and changes the model. This is the `controller`
   package plus the action listeners in the view. `GraphMouseListener` handles
   clicks and drags, and the toolbar buttons make `Command` objects that the
   `CommandManager` runs on the `Graph`.
@@ -139,6 +139,14 @@ Answer:
 
 Answer:
 
+The observer pattern is used to ensure that the MVC pattern stay loosely coupled while still allowing state to sync.
+
+The Graph class uses the observer pattern because everytime the graph of the game changes, the view would subscribe to event changes like NODE_ADDED, EDGE_REMOVED to ensure that the canvas redraws this updated state.
+
+This means that the model only knows about the event types and the callbacks and not anything that View or Controller class holds. It also ensures that the the view does not directly access the Model for changes. Likewise for the Model where it does not store any state/reference to View to ensure they are independent and loosely coupled.
+
+It is also scalable especially since adding new state changes only requires defining a new GraphEventType. Hence open more extension not modification (Open/Closed Principle).
+
 ---
 
 ## Process evaluation
@@ -148,7 +156,7 @@ and that paid off: since the model never touched the view, new features rarely
 forced rewrites. These clear boundaries also let us work in parallel without many
 conflicts. The hardest parts were the simulation's multi-phase step (getting
 battles and events to fire at the right moments without processing an army twice)
-and the JSON indentation, which we fixed by splitting the *what* from the *how*
+and the JSON indentation, which we fixed by splitting the _what_ from the _how_
 in the serialiser. The main thing we learned is how much a clean MVC design and
 the Command pattern simplify otherwise awkward features like undo/redo.
 
