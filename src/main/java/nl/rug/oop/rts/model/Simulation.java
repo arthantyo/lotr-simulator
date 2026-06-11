@@ -79,12 +79,12 @@ public class Simulation {
 
         System.out.println("Advancing simulation to time step " + (timeStep + 1));
         timeStep++;
-
-        Map<Army, Node> armiesOnNodes = snapshotArmiesOnNodes(graph);
-        Map<Army, Edge> armiesOnEdges = snapshotArmiesOnEdges(graph);
         Map<Node, List<Edge>> neighboringEdges = buildNeighboringEdges(graph.getEdges());
 
+        Map<Army, Node> armiesOnNodes = snapshotArmiesOnNodes(graph);
         processArmiesOnNodes(armiesOnNodes, neighboringEdges);
+
+        Map<Army, Edge> armiesOnEdges = snapshotArmiesOnEdges(graph);
         processArmiesOnEdges(armiesOnEdges);
     }
 
@@ -491,8 +491,12 @@ public class Simulation {
 
         BattleResult result = battle.resolve();
 
-        System.out.println("Battle at " + location.getName() + " resolved. Winning team: " + result.getWinner());
-
+        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
+                null,
+                "Battle at " + location.getName()
+                        + "\nWinning team: " + result.getWinner(),
+                "Battle Result",
+                JOptionPane.INFORMATION_MESSAGE));
         return result;
     }
 
