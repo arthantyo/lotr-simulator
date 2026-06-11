@@ -129,6 +129,13 @@ easier to follow and extend.
 ---
 
 Answer:
+Swing uses the Composite Design Pattern to create a hierarchy of user interface components.
+The Composite Pattern means that objects can be organized in a tree structure. Some objects are simple components, while others can contain more components inside them. The useful part of this pattern is that both simple components and groups of components can be treated in a similar way.
+In Swing, components like JButton, JLabel, and JTextField are simple components. A JPanel is different because it can contain other components. For example, a JPanel can contain buttons, labels, text fields, and even other JPanels. This creates a parent-child structure in the user interface.
+In our assignment, we used multiple JPanel components. Some panels contained smaller UI elements, and some panels could be placed inside other panels. This means the interface was built as a tree of components.
+Swing supports this using methods such as add(), which allows components to be added inside containers like JPanel.
+Therefore, Swing implements the Composite Pattern because it allows complex user interfaces to be built from smaller components, while keeping everything organized in a hierarchy.
+
 
 ---
 
